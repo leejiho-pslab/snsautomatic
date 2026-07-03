@@ -38,6 +38,10 @@ python3 -m http.server 8000 --directory dashboard   # → http://localhost:8000
 - **대시보드**: `.github/workflows/dashboard.yml` — GitHub Pages 자동 배포 (Settings > Pages > Source: GitHub Actions 활성화 필요)
 - **필요 secrets**: `META_ACCESS_TOKEN`, `IG_USER_ID__DONGSUNG_PRINT`, `CLOUDINARY_URL`, `KAKAO_REST_KEY`, `KAKAO_REFRESH_TOKEN`
 
+## 오픈 절차
+
+**[docs/오픈-가이드.md](docs/오픈-가이드.md)** — 머지 → Pages → 토큰 등록 → 리허설 → 오픈, 순서대로 따라 하면 됩니다.
+
 ## 신규 클라이언트 추가
 
 `clients/_template` 복제 후 `references/setup-guide.md` 절차 수행. 스킬·스크립트 수정 불필요.

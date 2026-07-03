@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  loadEnv, loadConfig, loadPublished, savePublished, listClients, dataDir, log,
+  loadEnv, loadConfig, loadSchedule, loadPublished, savePublished, listClients, dataDir, log,
 } from './lib/common.js';
 import { fetchInsights, listRecentMedia } from './lib/publish.js';
 import { buildDashboard } from './build-dashboard.js';
@@ -48,11 +48,17 @@ async function reconcile(client, config) {
 async function collect(client) {
   const config = loadConfig(client);
   const published = loadPublished(client);
+  const schedule = loadSchedule(client);
+  const pillarById = new Map(schedule.posts.map((p) => [p.id, p.pillar]));
   const insights = [];
   for (const post of published.posts) {
     try {
       const data = await fetchInsights(config, post.mediaId);
-      insights.push({ id: post.id, title: post.title, date: post.date, mediaId: post.mediaId, ...data });
+      const engagementRate = data.reach ? ((data.likes || 0) + (data.comments || 0)) / data.reach : 0;
+      insights.push({
+        id: post.id, title: post.title, date: post.date, mediaId: post.mediaId,
+        pillar: pillarById.get(post.id) || null, engagementRate, ...data,
+      });
       log('insights', `${post.id}: 좋아요 ${data.likes} 댓글 ${data.comments} 도달 ${data.reach ?? '-'}`);
     } catch (e) {
       log('insights', `${post.id} 조회 실패: ${e.message}`);

@@ -75,7 +75,12 @@ function buildBlog(config, blogPublished) {
 }
 
 function buildLearning(insightPosts) {
-  const sample = insightPosts.filter((p) => p.likes != null);
+  const sample = insightPosts
+    .filter((p) => p.likes != null)
+    .map((p) => ({
+      ...p,
+      engagementRate: p.engagementRate ?? (p.reach ? ((p.likes || 0) + (p.comments || 0)) / p.reach : 0),
+    }));
   if (sample.length < 1) return { sampleSize: 0, generatedAt: new Date().toISOString(), hints: [], variants: [], hours: [] };
   const hints = [];
   const best = [...sample].sort((a, b) => (b.engagementRate || 0) - (a.engagementRate || 0))[0];
