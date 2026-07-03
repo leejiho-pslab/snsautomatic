@@ -1,0 +1,68 @@
+name: autopost
+
+on:
+  schedule:
+    # 매일 11:00 KST (02:00 UTC) — 스케줄된 포스트 자동 발행
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      client:
+        description: '클라이언트 slug (비우면 전체)'
+        required: false
+      mode:
+        description: 'test 또는 live'
+        required: false
+        default: 'live'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: autopost
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright-core install chromium --with-deps || npx playwright install chromium --with-deps
+
+      - name: Run pipeline
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID__DONGSUNG_PRINT: ${{ secrets.IG_USER_ID__DONGSUNG_PRINT }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+        run: |
+          CLIENT_ARG="--all-clients"
+          if [ -n "${{ github.event.inputs.client }}" ]; then CLIENT_ARG="--client ${{ github.event.inputs.client }}"; fi
+          MODE="--${{ github.event.inputs.mode || 'live' }}"
+          node scripts/run.js $CLIENT_ARG $MODE
+
+      - name: Collect insights
+        if: ${{ (github.event.inputs.mode || 'live') == 'live' }}
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID__DONGSUNG_PRINT: ${{ secrets.IG_USER_ID__DONGSUNG_PRINT }}
+        run: node scripts/insights.js --all-clients || true
+
+      - name: Commit state (published log + dashboard data)
+        run: |
+          git config user.name "sns-autopost-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data dashboard/data
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: 발행 이력·대시보드 데이터 갱신 [skip ci]"
+            git push
+          fi

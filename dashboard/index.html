@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>동성인쇄소 · SNS 자동화 대시보드</title>
+<style>
+  :root {
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --series-2: #1baf7a;
+    --series-3: #eda100;
+    --series-4: #008300;
+    --status-good: #0ca30c;
+    --status-serious: #ec835a;
+    --status-critical: #d03b3b;
+    --delta-good: #006300;
+    --brand: #12284B;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --ink: #ffffff;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #199e70;
+      --series-3: #c98500;
+      --series-4: #008300;
+      --delta-good: #0ca30c;
+      --brand: #3d5f96;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 0 0 64px;
+  }
+  header {
+    background: var(--brand); color: #fff;
+    padding: 28px 32px;
+  }
+  header .wrap, main { max-width: 1080px; margin: 0 auto; }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  header .sub { margin-top: 6px; font-size: 13px; opacity: .75; }
+  header .cmyk { display: inline-flex; margin-left: 10px; vertical-align: middle; }
+  header .cmyk span { width: 18px; height: 8px; display: block; }
+  main { padding: 24px 32px 0; }
+  section { margin-top: 28px; }
+  h2 { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+  h2 .note { font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 8px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .tile {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .tile .label { font-size: 12px; color: var(--ink-2); }
+  .tile .value { font-size: 32px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
+  .tile .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .tile.alert .value { color: var(--status-critical); }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; padding: 6px 10px; border-bottom: 1px solid var(--grid); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--grid); color: var(--ink); }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
+  .chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .chip.published { color: var(--status-good); }
+  .chip.upcoming  { color: var(--ink-2); }
+  .chip.overdue   { color: var(--status-critical); }
+  .pillar-tag { font-size: 12px; color: var(--ink-2); }
+  a { color: var(--series-1); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .empty { color: var(--muted); font-size: 13px; padding: 20px 4px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--ink-2); }
+  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
+  .stackbar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; margin-top: 6px; }
+  .stackbar div + div { border-left: 2px solid var(--surface-1); }
+  .chart-tooltip {
+    position: fixed; pointer-events: none; z-index: 10; display: none;
+    background: var(--ink); color: var(--page);
+    font-size: 12px; line-height: 1.5; padding: 8px 10px; border-radius: 8px;
+    max-width: 260px;
+  }
+  .pipeline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink-2); }
+  .pipeline .step { background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-weight: 600; color: var(--ink); }
+  .pipeline .arrow { color: var(--muted); }
+  footer.meta { max-width: 1080px; margin: 36px auto 0; padding: 0 32px; font-size: 12px; color: var(--muted); line-height: 1.7; }
+  svg text { font-family: inherit; }
+  .load-error { max-width: 1080px; margin: 24px auto; padding: 16px 32px; color: var(--status-critical); font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1 id="title">SNS 자동화 대시보드
+      <span class="cmyk"><span style="background:#00A6D6"></span><span style="background:#E5197C"></span><span style="background:#F5C518"></span><span style="background:#000"></span></span>
+    </h1>
+    <div class="sub" id="subtitle">데이터 로딩 중…</div>
+  </div>
+</header>
+<div id="app"></div>
+<div class="chart-tooltip" id="tooltip"></div>
+<footer class="meta">
+  자동 발행: GitHub Actions cron (매일 11:00 KST) · 성과 수집: 매일 자동 · 이 페이지는 발행 파이프라인 실행 시마다 갱신됩니다.<br>
+  운영: sns-autopost v2 · 문제 발생 시 <code>.claude/skills/sns-autopost/references/troubleshooting.md</code> 참조
+</footer>
+<script>
+const PILLAR_COLORS = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)'];
+const STATUS_LABEL = { published: '발행 완료', upcoming: '발행 예정', overdue: '지연' };
+const fmt = (n) => n == null ? '–' : n.toLocaleString('ko-KR');
+const tooltip = document.getElementById('tooltip');
+
+function showTip(e, html) {
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+  tooltip.style.left = Math.min(e.clientX + 14, window.innerWidth - 280) + 'px';
+  tooltip.style.top = (e.clientY + 14) + 'px';
+}
+function hideTip() { tooltip.style.display = 'none'; }
+
+function el(tag, attrs = {}, html) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (html != null) n.innerHTML = html;
+  return n;
+}
+
+// 단일 시리즈 세로 막대 차트 (좋아요 수) — SVG
+function barChart(posts) {
+  const W = 1000, H = 260, PAD = { l: 44, r: 8, t: 14, b: 52 };
+  const vals = posts.map((p) => p.likes ?? 0);
+  const max = Math.max(4, ...vals);
+  const iw = W - PAD.l - PAD.r, ih = H - PAD.t - PAD.b;
+  const bw = Math.min(48, iw / posts.length * 0.55);
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.width = '100%';
+
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const v = Math.round(max / ticks * i);
+    const y = PAD.t + ih - (v / max) * ih;
+    const line = document.createElementNS(svgNS, 'line');
+    Object.entries({ x1: PAD.l, x2: W - PAD.r, y1: y, y2: y, stroke: i === 0 ? 'var(--baseline)' : 'var(--grid)', 'stroke-width': 1 })
+      .forEach(([k, val]) => line.setAttribute(k, val));
+    svg.appendChild(line);
+    const t = document.createElementNS(svgNS, 'text');
+    Object.entries({ x: PAD.l - 8, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' })
+      .forEach(([k, val]) => t.setAttribute(k, val));
+    t.textContent = v;
+    svg.appendChild(t);
+  }
+
+  posts.forEach((p, i) => {
+    const x = PAD.l + (iw / posts.length) * (i + 0.5) - bw / 2;
+    const h = ((p.likes ?? 0) / max) * ih;
+    const y = PAD.t + ih - h;
+    const r = Math.min(4, h);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d',
+      `M${x},${PAD.t + ih} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + bw - r},${y} Q${x + bw},${y} ${x + bw},${y + r} L${x + bw},${PAD.t + ih} Z`);
+    path.setAttribute('fill', 'var(--series-1)');
+    const hit = document.createElementNS(svgNS, 'rect');
+    Object.entries({ x: x - 8, y: PAD.t, width: bw + 16, height: ih, fill: 'transparent' })
+      .forEach(([k, val]) => hit.setAttribute(k, val));
+    hit.addEventListener('mousemove', (e) => showTip(e,
+      `<b>${p.title}</b><br>좋아요 ${fmt(p.likes)} · 댓글 ${fmt(p.comments)}<br>도달 ${fmt(p.reach)} · 저장 ${fmt(p.saved)}`));
+    hit.addEventListener('mouseleave', hideTip);
+
+    const label = document.createElementNS(svgNS, 'text');
+    Object.entries({ x: x + bw / 2, y: PAD.t + ih + 18, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--ink-2)' })
+      .forEach(([k, val]) => label.setAttribute(k, val));
+    label.textContent = (p.date || '').slice(5);
+    // 최댓값에만 직접 라벨
+    if ((p.likes ?? 0) === Math.max(...vals) && p.likes != null) {
+      const v = document.createElementNS(svgNS, 'text');
+      Object.entries({ x: x + bw / 2, y: y - 6, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: 'var(--ink)' })
+        .forEach(([k, val]) => v.setAttribute(k, val));
+      v.textContent = fmt(p.likes);
+      svg.appendChild(v);
+    }
+    svg.append(path, hit, label);
+  });
+  return svg;
+}
+
+function render(data) {
+  const c = data.clients.find((x) => x.slug === 'dongsung-print') || data.clients[0];
+  if (!c) { document.getElementById('app').innerHTML = '<div class="load-error">클라이언트 데이터가 없습니다.</div>'; return; }
+
+  document.getElementById('title').firstChild.textContent = `${c.name} SNS 자동화 대시보드 `;
+  document.getElementById('subtitle').textContent =
+    `${c.instagram || ''} · 기준일 ${c.today} · 데이터 갱신 ${new Date(data.generatedAt).toLocaleString('ko-KR')}`;
+
+  const app = document.getElementById('app');
+  const main = el('main');
+  app.appendChild(main);
+
+  // ── 상태 타일
+  const nextPost = c.schedule.filter((p) => p.status === 'upcoming').sort((a, b) => a.date.localeCompare(b.date))[0];
+  const tiles = el('section');
+  tiles.appendChild(el('h2', {}, '현황'));
+  const grid = el('div', { class: 'tiles' });
+  const tileDefs = [
+    { label: '발행 완료', value: c.counts.published, hint: '누적 게시물' },
+    { label: '발행 예정', value: c.counts.upcoming, hint: '콘텐츠 준비 필요 포함' },
+    { label: '지연', value: c.counts.overdue, hint: c.counts.overdue > 0 ? '⚠ 스케줄 확인 필요' : '정상', alert: c.counts.overdue > 0 },
+    { label: '다음 발행', value: nextPost ? nextPost.date.slice(5).replace('-', '/') : '–', hint: nextPost ? nextPost.title : '스케줄에 포스트를 추가하세요' },
+  ];
+  for (const t of tileDefs) {
+    const tile = el('div', { class: 'tile' + (t.alert ? ' alert' : '') });
+    tile.appendChild(el('div', { class: 'label' }, t.label));
+    tile.appendChild(el('div', { class: 'value' }, String(t.value)));
+    tile.appendChild(el('div', { class: 'hint' }, t.hint));
+    grid.appendChild(tile);
+  }
+  tiles.appendChild(grid);
+  main.appendChild(tiles);
+
+  // ── 발행 일정
+  const sched = el('section');
+  sched.appendChild(el('h2', {}, `발행 일정 <span class="note">clients/${c.slug}/schedule.json 기준</span>`));
+  const schedCard = el('div', { class: 'card' });
+  if (c.schedule.length === 0) {
+    schedCard.appendChild(el('div', { class: 'empty' }, '등록된 스케줄이 없습니다.'));
+  } else {
+    const table = el('table');
+    table.appendChild(el('thead', {}, '<tr><th>날짜</th><th>제목</th><th>필러</th><th>상태</th><th>링크</th></tr>'));
+    const tbody = el('tbody');
+    for (const p of [...c.schedule].sort((a, b) => a.date.localeCompare(b.date))) {
+      const pub = c.published.find((q) => q.id === p.id);
+      tbody.appendChild(el('tr', {}, `
+        <td style="white-space:nowrap">${p.date}</td>
+        <td>${p.title}</td>
+        <td><span class="pillar-tag">${p.pillar || '-'}</span></td>
+        <td><span class="chip ${p.status}">${STATUS_LABEL[p.status]}</span></td>
+        <td>${pub && pub.permalink ? `<a href="${pub.permalink}" target="_blank" rel="noopener">게시물 ↗</a>` : '–'}</td>`));
+    }
+    table.appendChild(tbody);
+    schedCard.appendChild(table);
+  }
+  sched.appendChild(schedCard);
+  main.appendChild(sched);
+
+  // ── 성과
+  const perf = el('section');
+  perf.appendChild(el('h2', {}, `게시물 성과 <span class="note">${c.insights.updatedAt ? '수집 ' + new Date(c.insights.updatedAt).toLocaleString('ko-KR') : ''}</span>`));
+  const perfCard = el('div', { class: 'card' });
+  const ins = (c.insights.posts || []).filter((p) => p.likes != null);
+  if (ins.length === 0) {
+    perfCard.appendChild(el('div', { class: 'empty' },
+      '아직 수집된 성과 데이터가 없습니다. 첫 발행 후 <code>node scripts/insights.js --client ' + c.slug + '</code> 실행 시(자동화됨) 좋아요·댓글·도달·저장 지표가 여기에 표시됩니다.'));
+  } else {
+    const sorted = [...ins].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    perfCard.appendChild(barChart(sorted));
+    perfCard.appendChild(el('div', { class: 'legend' },
+      '<span class="key"><span class="swatch" style="background:var(--series-1)"></span>게시물별 좋아요</span><span class="key">막대에 마우스를 올리면 상세 지표</span>'));
+    const table = el('table');
+    table.setAttribute('style', 'margin-top:16px');
+    table.appendChild(el('thead', {}, '<tr><th>게시물</th><th class="num">좋아요</th><th class="num">댓글</th><th class="num">도달</th><th class="num">저장</th></tr>'));
+    const tbody = el('tbody');
+    for (const p of [...sorted].reverse()) {
+      tbody.appendChild(el('tr', {}, `
+        <td>${p.permalink ? `<a href="${p.permalink}" target="_blank" rel="noopener">${p.title}</a>` : p.title}</td>
+        <td class="num">${fmt(p.likes)}</td><td class="num">${fmt(p.comments)}</td>
+        <td class="num">${fmt(p.reach)}</td><td class="num">${fmt(p.saved)}</td>`));
+    }
+    table.appendChild(tbody);
+    perfCard.appendChild(table);
+  }
+  perf.appendChild(perfCard);
+  main.appendChild(perf);
+
+  // ── 콘텐츠 필러 분포
+  const pillars = {};
+  for (const p of c.schedule) pillars[p.pillar || '기타'] = (pillars[p.pillar || '기타'] || 0) + 1;
+  const pillarNames = Object.keys(pillars);
+  if (pillarNames.length) {
+    const sec = el('section');
+    sec.appendChild(el('h2', {}, '콘텐츠 필러 구성 <span class="note">전체 스케줄 기준</span>'));
+    const card = el('div', { class: 'card' });
+    const total = c.schedule.length;
+    const bar = el('div', { class: 'stackbar' });
+    const legend = el('div', { class: 'legend' });
+    pillarNames.forEach((name, i) => {
+      const seg = el('div', { style: `width:${pillars[name] / total * 100}%;background:${PILLAR_COLORS[i % 4]}` });
+      seg.addEventListener('mousemove', (e) => showTip(e, `<b>${name}</b><br>${pillars[name]}건 (${Math.round(pillars[name] / total * 100)}%)`));
+      seg.addEventListener('mouseleave', hideTip);
+      bar.appendChild(seg);
+      legend.appendChild(el('span', { class: 'key' },
+        `<span class="swatch" style="background:${PILLAR_COLORS[i % 4]}"></span>${name} ${pillars[name]}건`));
+    });
+    card.append(bar, legend);
+    sec.appendChild(card);
+    main.appendChild(sec);
+  }
+
+  // ── 파이프라인
+  const pipe = el('section');
+  pipe.appendChild(el('h2', {}, '자동 발행 파이프라인'));
+  const pipeCard = el('div', { class: 'card' });
+  const flow = el('div', { class: 'pipeline' });
+  ['스케줄 확인', 'HTML→PNG 렌더', 'Cloudinary 업로드', 'Graph API 발행', '이력 기록', '카카오톡 알림', '대시보드 갱신']
+    .forEach((s, i, arr) => {
+      flow.appendChild(el('span', { class: 'step' }, s));
+      if (i < arr.length - 1) flow.appendChild(el('span', { class: 'arrow' }, '→'));
+    });
+  pipeCard.appendChild(flow);
+  pipe.appendChild(pipeCard);
+  main.appendChild(pipe);
+}
+
+fetch('./data/status.json?' + Date.now())
+  .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(render)
+  .catch((e) => {
+    document.getElementById('subtitle').textContent = '데이터 로드 실패';
+    document.getElementById('app').innerHTML =
+      `<div class="load-error">data/status.json을 불러올 수 없습니다 (${e.message}).<br>` +
+      `로컬에서는 <code>python3 -m http.server</code> 등으로 서빙한 뒤 열어주세요. 데이터 생성: <code>node scripts/build-dashboard.js</code></div>`;
+  });
+</script>
+</body>
+</html>

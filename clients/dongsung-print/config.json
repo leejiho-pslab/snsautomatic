@@ -1,0 +1,18 @@
+{
+  "name": "동성인쇄소",
+  "igEnvKey": "DONGSUNG_PRINT",
+  "instagram": "@dongsung_print",
+  "timezone": "Asia/Seoul",
+  "brandColor": "#12284B",
+  "defaultHashtags": [
+    "#동성인쇄소",
+    "#인쇄소",
+    "#인쇄",
+    "#소량인쇄",
+    "#명함제작",
+    "#스티커제작",
+    "#리플렛",
+    "#인쇄견적"
+  ],
+  "notify": { "kakao": true }
+}

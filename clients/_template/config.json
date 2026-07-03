@@ -1,0 +1,9 @@
+{
+  "name": "클라이언트 표시 이름",
+  "igEnvKey": "CLIENT_ENV_KEY",
+  "instagram": "@handle",
+  "timezone": "Asia/Seoul",
+  "brandColor": "#333333",
+  "defaultHashtags": ["#태그1", "#태그2"],
+  "notify": { "kakao": true }
+}

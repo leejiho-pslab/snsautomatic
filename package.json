@@ -1,0 +1,16 @@
+{
+  "name": "snsautomatic",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "멀티 클라이언트 인스타그램 캐러셀 자동 발행 시스템 (sns-autopost v2)",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test:dongsung": "node scripts/run.js --client dongsung-print --test",
+    "live:dongsung": "node scripts/run.js --client dongsung-print --live",
+    "dashboard": "node scripts/build-dashboard.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

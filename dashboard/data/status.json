@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-07-03T12:11:24.748Z",
+  "clients": [
+    {
+      "slug": "dongsung-print",
+      "name": "동성인쇄소",
+      "instagram": "@dongsung_print",
+      "brandColor": "#12284B",
+      "today": "2026-07-03",
+      "counts": {
+        "scheduled": 6,
+        "published": 0,
+        "upcoming": 6,
+        "overdue": 0
+      },
+      "schedule": [
+        {
+          "id": "2026-07-06-business-card-paper",
+          "date": "2026-07-06",
+          "title": "명함 용지, 뭘 골라야 할까? 인쇄소가 알려주는 3가지 기준",
+          "pillar": "인쇄 지식",
+          "status": "upcoming"
+        },
+        {
+          "id": "2026-07-09-sticker-cutting",
+          "date": "2026-07-09",
+          "title": "스티커 주문 전 필수 상식: 도무송 vs 조각 컷팅",
+          "pillar": "인쇄 지식",
+          "status": "upcoming"
+        },
+        {
+          "id": "2026-07-13-quote-guide",
+          "date": "2026-07-13",
+          "title": "인쇄 견적, 왜 이렇게 나올까? 견적서 읽는 법",
+          "pillar": "견적·이벤트",
+          "status": "upcoming"
+        },
+        {
+          "id": "2026-07-16-case-cafe-menu",
+          "date": "2026-07-16",
+          "title": "작업 사례: 카페 메뉴판 리뉴얼 (비포/애프터)",
+          "pillar": "작업 사례",
+          "status": "upcoming"
+        },
+        {
+          "id": "2026-07-20-data-checklist",
+          "date": "2026-07-20",
+          "title": "인쇄 데이터 넘기기 전 체크리스트 5가지",
+          "pillar": "인쇄 지식",
+          "status": "upcoming"
+        },
+        {
+          "id": "2026-07-23-factory-offset",
+          "date": "2026-07-23",
+          "title": "공장 이야기: 오프셋 인쇄기가 색을 만드는 방법",
+          "pillar": "공장 이야기",
+          "status": "upcoming"
+        }
+      ],
+      "published": [],
+      "insights": {
+        "updatedAt": null,
+        "posts": []
+      }
+    }
+  ]
+}
