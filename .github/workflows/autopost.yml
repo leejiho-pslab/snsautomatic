@@ -57,12 +57,23 @@ jobs:
           IG_USER_ID__DONGSUNG_PRINT: ${{ secrets.IG_USER_ID__DONGSUNG_PRINT }}
         run: node scripts/insights.js --all-clients || true
 
-      - name: Commit state (published log + dashboard data)
+      - name: Rebuild dashboard (with secrets-aware checklist)
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID__DONGSUNG_PRINT: ${{ secrets.IG_USER_ID__DONGSUNG_PRINT }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+        run: node scripts/build-dashboard.js
+
+      # 주의: 커밋 메시지에 [skip ci] 금지 — Pages 배포까지 막힌다 (스킬 §8)
+      - name: Commit state (published log + dashboard)
         run: |
           git config user.name "sns-autopost-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data dashboard/data
+          git add data dashboard
           if ! git diff --cached --quiet; then
-            git commit -m "chore: 발행 이력·대시보드 데이터 갱신 [skip ci]"
-            git push
+            git commit -m "chore: 발행 이력·대시보드 갱신"
+            git pull --rebase || true
+            git push || (sleep 5 && git pull --rebase && git push)
           fi

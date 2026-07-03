@@ -31,7 +31,30 @@ jobs:
         with:
           node-version: 22
 
-      - name: Build dashboard data
+      - run: npm ci
+
+      - name: Render carousel cards
+        run: |
+          npx playwright-core install chromium --with-deps || npx playwright install chromium --with-deps
+          node -e "
+          import('./scripts/lib/render.js').then(async ({renderPost}) => {
+            const fs = await import('node:fs');
+            for (const client of fs.readdirSync('clients').filter(d => !d.startsWith('_') && fs.existsSync('clients/'+d+'/config.json'))) {
+              const cdir = 'clients/'+client+'/content';
+              if (!fs.existsSync(cdir)) continue;
+              for (const post of fs.readdirSync(cdir)) {
+                try { await renderPost(client, post); } catch (e) { console.error(client, post, e.message); }
+              }
+            }
+          });"
+
+      - name: Build dashboard (with secrets-aware checklist)
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID__DONGSUNG_PRINT: ${{ secrets.IG_USER_ID__DONGSUNG_PRINT }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
         run: node scripts/build-dashboard.js
 
       - uses: actions/configure-pages@v5

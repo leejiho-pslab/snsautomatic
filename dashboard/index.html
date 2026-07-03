@@ -1,343 +1,388 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>동성인쇄소 · SNS 자동화 대시보드</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="refresh" content="300"/>
+<title>동성인쇄소 콘텐츠 관제실</title>
 <style>
-  :root {
-    --surface-1: #fcfcfb;
-    --page: #f9f9f7;
-    --ink: #0b0b0b;
-    --ink-2: #52514e;
-    --muted: #898781;
-    --grid: #e1e0d9;
-    --baseline: #c3c2b7;
-    --border: rgba(11,11,11,0.10);
-    --series-1: #2a78d6;
-    --series-2: #1baf7a;
-    --series-3: #eda100;
-    --series-4: #008300;
-    --status-good: #0ca30c;
-    --status-serious: #ec835a;
-    --status-critical: #d03b3b;
-    --delta-good: #006300;
-    --brand: #12284B;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --surface-1: #1a1a19;
-      --page: #0d0d0d;
-      --ink: #ffffff;
-      --ink-2: #c3c2b7;
-      --muted: #898781;
-      --grid: #2c2c2a;
-      --baseline: #383835;
-      --border: rgba(255,255,255,0.10);
-      --series-1: #3987e5;
-      --series-2: #199e70;
-      --series-3: #c98500;
-      --series-4: #008300;
-      --delta-good: #0ca30c;
-      --brand: #3d5f96;
-    }
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    background: var(--page); color: var(--ink);
-    padding: 0 0 64px;
-  }
-  header {
-    background: var(--brand); color: #fff;
-    padding: 28px 32px;
-  }
-  header .wrap, main { max-width: 1080px; margin: 0 auto; }
-  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-  header .sub { margin-top: 6px; font-size: 13px; opacity: .75; }
-  header .cmyk { display: inline-flex; margin-left: 10px; vertical-align: middle; }
-  header .cmyk span { width: 18px; height: 8px; display: block; }
-  main { padding: 24px 32px 0; }
-  section { margin-top: 28px; }
-  h2 { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
-  h2 .note { font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 8px; }
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-  .tile {
-    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
-    padding: 16px 18px;
-  }
-  .tile .label { font-size: 12px; color: var(--ink-2); }
-  .tile .value { font-size: 32px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
-  .tile .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .tile.alert .value { color: var(--status-critical); }
-  .card {
-    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
-    padding: 18px 20px; overflow-x: auto;
-  }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; padding: 6px 10px; border-bottom: 1px solid var(--grid); }
-  td { padding: 9px 10px; border-bottom: 1px solid var(--grid); color: var(--ink); }
-  tr:last-child td { border-bottom: 0; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
-  .chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-  .chip.published { color: var(--status-good); }
-  .chip.upcoming  { color: var(--ink-2); }
-  .chip.overdue   { color: var(--status-critical); }
-  .pillar-tag { font-size: 12px; color: var(--ink-2); }
-  a { color: var(--series-1); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .empty { color: var(--muted); font-size: 13px; padding: 20px 4px; }
-  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--ink-2); }
-  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
-  .legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
-  .stackbar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; margin-top: 6px; }
-  .stackbar div + div { border-left: 2px solid var(--surface-1); }
-  .chart-tooltip {
-    position: fixed; pointer-events: none; z-index: 10; display: none;
-    background: var(--ink); color: var(--page);
-    font-size: 12px; line-height: 1.5; padding: 8px 10px; border-radius: 8px;
-    max-width: 260px;
-  }
-  .pipeline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink-2); }
-  .pipeline .step { background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-weight: 600; color: var(--ink); }
-  .pipeline .arrow { color: var(--muted); }
-  footer.meta { max-width: 1080px; margin: 36px auto 0; padding: 0 32px; font-size: 12px; color: var(--muted); line-height: 1.7; }
-  svg text { font-family: inherit; }
-  .load-error { max-width: 1080px; margin: 24px auto; padding: 16px 32px; color: var(--status-critical); font-size: 14px; }
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;background:#0d0f14;color:#e6e8ee}
+a{color:#6db3ff}
+header{padding:16px 22px;border-bottom:1px solid #1e2230;background:#12141d;position:sticky;top:0;z-index:5}
+.brand{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sub{color:#7b8398;font-size:12px;margin-top:3px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.clients{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.cbtn{background:#1a1e2a;border:1px solid #262b3a;color:#cbd3e1;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+.cbtn.on{background:#2b6fff;border-color:#2b6fff;color:#fff}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;padding:12px 22px 0;border-bottom:1px solid #1e2230;background:#12141d;position:sticky;top:58px;z-index:4}
+.tab{background:transparent;border:none;border-bottom:2px solid transparent;color:#8b93a7;padding:8px 12px;cursor:pointer;font-size:14px}
+.tab.on{color:#fff;border-bottom-color:#2b6fff}
+.tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;vertical-align:middle}
+.dot.live{background:#4ade80}.dot.off{background:#444b5c}
+main{padding:18px 22px;max-width:1180px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#141823;border:1px solid #222838;border-radius:12px;padding:12px 14px}
+.kpi .v{font-size:22px;font-weight:700}.kpi .l{color:#7b8398;font-size:12px;margin-top:2px}
+.kpi .v.accent{color:#ffb454}
+.panel{background:#141823;border:1px solid #222838;border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.panel h3{margin:0 0 10px;font-size:15px}
+.sect-h{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px}
+.sect-h h2{font-size:16px;margin:0}
+.btn{background:#222838;border:1px solid #2d3346;color:#cbd3e1;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;cursor:pointer}
+.btn.fb{background:#2a2030;border-color:#5a3a6a;color:#e0b0ff}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.card{background:#141823;border:1px solid #222838;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{width:100%;aspect-ratio:4/5;object-fit:cover;background:#0a0c11;display:block}
+.thumb.noimg{display:flex;align-items:center;justify-content:center;color:#4b5263;font-size:13px}
+.cbody{padding:10px 12px;flex:1;display:flex;flex-direction:column;gap:6px}
+.ctop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.ctop strong{font-size:13px}
+.muted{color:#7b8398;font-size:11px}
+.cap{color:#aeb6c6;font-size:12px;line-height:1.4;max-height:3.6em;overflow:hidden}
+.met{display:flex;gap:10px;font-size:11px;color:#9aa3b5;margin-top:auto}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.b-ok{background:#15331f;color:#4ade80}.b-wait{background:#33290f;color:#ffb454}.b-plan{background:#16243a;color:#6db3ff}.b-hold{background:#331818;color:#ff7a7a}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #1e2230}
+th{color:#7b8398;font-weight:600;font-size:12px}
+.grade{display:inline-flex;align-items:center;justify-content:center;min-width:108px;padding:10px 16px;border-radius:12px;font-weight:800;font-size:18px}
+.bar{height:7px;border-radius:4px;background:#222838;overflow:hidden}.bar>i{display:block;height:100%;background:#2b6fff}
+.plan-pill{font-size:11px;color:#9aa3b5}
+.spark{display:block}
+.empty{color:#6b7387;padding:18px;text-align:center;font-size:13px}
+.tag{display:inline-block;background:#1a1e2a;border:1px solid #262b3a;border-radius:6px;padding:2px 7px;font-size:11px;color:#9aa3b5;margin:2px 2px 0 0}
+footer{text-align:center;color:#4b5263;font-size:11px;padding:22px}
+.card.clk{cursor:pointer;transition:transform .12s,border-color .12s}
+.card.clk:hover{transform:translateY(-3px);border-color:#3a4256}
+.b-var{font-weight:600}.v-A{background:#33240f;color:#ff8a3d}.v-B{background:#0c2a28;color:#36d6c4}.v-C{background:#2a2415;color:#ffc24a}
+.modal{position:fixed;inset:0;background:rgba(6,8,12,.82);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:32px 16px;overflow:auto}
+.modal.on{display:flex}
+.mwrap{position:relative;background:#12141d;border:1px solid #262b3a;border-radius:16px;max-width:920px;width:100%;padding:22px}
+.mx{position:absolute;top:14px;right:14px;background:#222838;border:1px solid #2d3346;color:#cbd3e1;width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px}
+#mbody h2{font-size:23px}
+#mbody .kick{color:#ff8a3d;font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.carou{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 12px;-webkit-overflow-scrolling:touch}
+.carou .slide{position:relative;flex:0 0 auto;scroll-snap-align:center}
+.carou .slide img{height:520px;width:auto;border-radius:14px;display:block;background:#0a0c11;border:1px solid #222838}
+.carou .snum{position:absolute;top:10px;right:10px;background:rgba(8,10,14,.7);color:#cbd3e1;font-size:11px;padding:3px 8px;border-radius:20px}
+.carou::-webkit-scrollbar{height:8px}.carou::-webkit-scrollbar-thumb{background:#2d3346;border-radius:8px}
+.capbox{background:#0f1219;border:1px solid #222838;border-radius:12px;padding:14px 16px}
+.caphd{color:#7b8398;font-size:12px;font-weight:600;margin-bottom:8px}
+.mcap{white-space:normal;line-height:1.75;font-size:15px;color:#d4dae6}
+.chgrp{margin:10px 0 18px}
+.chgrp-h{font-size:14px;font-weight:700;margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid #1e2230}
+.md-h1{font-size:19px;margin:10px 0 8px;font-weight:800}.md-h{font-size:15px;color:#ffb454;margin:14px 0 4px;font-weight:700}
+.md-tag{color:#6db3ff;font-weight:600;font-size:13px;margin:10px 0 2px}.md-sp{height:10px}
+.md-quote{background:#16202e;border-left:3px solid #ffb454;padding:8px 12px;color:#e6e8ee;font-size:14px}
+.md-quote+.md-quote{padding-top:0}
+.md-tags{color:#6db3ff;font-size:13px;margin-top:12px}
+.md-img{display:block;width:100%;border-radius:10px;margin:12px 0;border:1px solid #222838}
+.mcap b{color:#fff}
+.thumbwrap{position:relative}
+.b-car{position:absolute;top:8px;right:8px;background:rgba(8,10,14,.74);color:#e6e8ee;border:1px solid #2d3346}
+@media(max-width:720px){.carou .slide img{height:60vh}}
 </style>
 </head>
 <body>
 <header>
-  <div class="wrap">
-    <h1 id="title">SNS 자동화 대시보드
-      <span class="cmyk"><span style="background:#00A6D6"></span><span style="background:#E5197C"></span><span style="background:#F5C518"></span><span style="background:#000"></span></span>
-    </h1>
-    <div class="sub" id="subtitle">데이터 로딩 중…</div>
-  </div>
+  <div class="brand">🖨️ 동성인쇄소 콘텐츠 관제실</div>
+  <div class="sub">채널별 현황 · 발행/대기 · 반응도 · 기획안 피드백 · 5분 자동 새로고침</div>
+  <div class="clients" id="clients"></div>
 </header>
-<div id="app"></div>
-<div class="chart-tooltip" id="tooltip"></div>
-<footer class="meta">
-  자동 발행: GitHub Actions cron (매일 11:00 KST) · 성과 수집: 매일 자동 · 이 페이지는 발행 파이프라인 실행 시마다 갱신됩니다.<br>
-  운영: sns-autopost v2 · 문제 발생 시 <code>.claude/skills/sns-autopost/references/troubleshooting.md</code> 참조
-</footer>
+<div class="tabs" id="tabs"></div>
+<main id="view"></main>
+<footer>sns-autopost v2 · 자동 생성 · <span id="gen"></span></footer>
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+  <div class="mwrap"><button class="mx" onclick="closeModal()">✕</button><div id="mbody"></div></div>
+</div>
 <script>
-const PILLAR_COLORS = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)'];
-const STATUS_LABEL = { published: '발행 완료', upcoming: '발행 예정', overdue: '지연' };
-const fmt = (n) => n == null ? '–' : n.toLocaleString('ko-KR');
-const tooltip = document.getElementById('tooltip');
-
-function showTip(e, html) {
-  tooltip.innerHTML = html;
-  tooltip.style.display = 'block';
-  tooltip.style.left = Math.min(e.clientX + 14, window.innerWidth - 280) + 'px';
-  tooltip.style.top = (e.clientY + 14) + 'px';
-}
-function hideTip() { tooltip.style.display = 'none'; }
-
-function el(tag, attrs = {}, html) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
-  if (html != null) n.innerHTML = html;
-  return n;
-}
-
-// 단일 시리즈 세로 막대 차트 (좋아요 수) — SVG
-function barChart(posts) {
-  const W = 1000, H = 260, PAD = { l: 44, r: 8, t: 14, b: 52 };
-  const vals = posts.map((p) => p.likes ?? 0);
-  const max = Math.max(4, ...vals);
-  const iw = W - PAD.l - PAD.r, ih = H - PAD.t - PAD.b;
-  const bw = Math.min(48, iw / posts.length * 0.55);
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(svgNS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.style.width = '100%';
-
-  const ticks = 4;
-  for (let i = 0; i <= ticks; i++) {
-    const v = Math.round(max / ticks * i);
-    const y = PAD.t + ih - (v / max) * ih;
-    const line = document.createElementNS(svgNS, 'line');
-    Object.entries({ x1: PAD.l, x2: W - PAD.r, y1: y, y2: y, stroke: i === 0 ? 'var(--baseline)' : 'var(--grid)', 'stroke-width': 1 })
-      .forEach(([k, val]) => line.setAttribute(k, val));
-    svg.appendChild(line);
-    const t = document.createElementNS(svgNS, 'text');
-    Object.entries({ x: PAD.l - 8, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' })
-      .forEach(([k, val]) => t.setAttribute(k, val));
-    t.textContent = v;
-    svg.appendChild(t);
-  }
-
-  posts.forEach((p, i) => {
-    const x = PAD.l + (iw / posts.length) * (i + 0.5) - bw / 2;
-    const h = ((p.likes ?? 0) / max) * ih;
-    const y = PAD.t + ih - h;
-    const r = Math.min(4, h);
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d',
-      `M${x},${PAD.t + ih} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + bw - r},${y} Q${x + bw},${y} ${x + bw},${y + r} L${x + bw},${PAD.t + ih} Z`);
-    path.setAttribute('fill', 'var(--series-1)');
-    const hit = document.createElementNS(svgNS, 'rect');
-    Object.entries({ x: x - 8, y: PAD.t, width: bw + 16, height: ih, fill: 'transparent' })
-      .forEach(([k, val]) => hit.setAttribute(k, val));
-    hit.addEventListener('mousemove', (e) => showTip(e,
-      `<b>${p.title}</b><br>좋아요 ${fmt(p.likes)} · 댓글 ${fmt(p.comments)}<br>도달 ${fmt(p.reach)} · 저장 ${fmt(p.saved)}`));
-    hit.addEventListener('mouseleave', hideTip);
-
-    const label = document.createElementNS(svgNS, 'text');
-    Object.entries({ x: x + bw / 2, y: PAD.t + ih + 18, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--ink-2)' })
-      .forEach(([k, val]) => label.setAttribute(k, val));
-    label.textContent = (p.date || '').slice(5);
-    // 최댓값에만 직접 라벨
-    if ((p.likes ?? 0) === Math.max(...vals) && p.likes != null) {
-      const v = document.createElementNS(svgNS, 'text');
-      Object.entries({ x: x + bw / 2, y: y - 6, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: 'var(--ink)' })
-        .forEach(([k, val]) => v.setAttribute(k, val));
-      v.textContent = fmt(p.likes);
-      svg.appendChild(v);
+/* 안전장치: 메인 스크립트가 깨져도 빈 화면 대신 오류와 새로고침 버튼을 보여준다. */
+window.onerror = function (m) {
+  try {
+    var v = document.getElementById('view');
+    if (v && !(v.innerHTML && v.innerHTML.replace(/\s/g, ''))) {
+      v.innerHTML = '<div style="padding:24px;line-height:1.7;color:#ffb4b4">'
+        + '화면을 그리는 중 문제가 생겼어요.<br>'
+        + '<span style="color:#9aa6bd;font-size:13px">' + String(m) + '</span><br><br>'
+        + '<button onclick="location.reload(true)" style="padding:10px 16px;border-radius:8px;border:0;background:#2b6fff;color:#fff;font-size:15px">새로고침</button>'
+        + '</div>';
     }
-    svg.append(path, hit, label);
-  });
-  return svg;
+  } catch (e) {}
+  return false;
+};
+</script>
+<script>
+const DATA = {"generatedAt":"2026-07-03T12:48:46.203Z","repo":"leejiho-pslab/snsautomatic","monthLabel":"7월","channels":[{"key":"instagram","label":"인스타그램","icon":"📸"},{"key":"threads","label":"스레드","icon":"🧵"},{"key":"naver-blog","label":"네이버 블로그","icon":"📝"},{"key":"blogger","label":"구글 블로그","icon":"🅱️"},{"key":"youtube","label":"유튜브","icon":"▶️"},{"key":"linkedin","label":"링크드인","icon":"💼"}],"setup":{"instagram":false,"cloudinary":false,"kakao":false,"contentReady":true,"firstPublish":false},"clients":[{"id":"dongsung-print","name":"동성인쇄소","industry":"인쇄·출판","brandTone":"물어보기 편한 동네 인쇄 전문가 — 존댓말, 친근하되 가볍지 않게","keywords":["명함제작","스티커제작","리플렛","소량인쇄","인쇄견적","후가공"],"competitors":[],"bannedWords":[],"schedule":["11:00"],"reviewMode":"검수 후 발행","designVersion":2,"designStyle":{"palette":"CMYK 모티프 (잉크 네이비 + 시안/마젠타/옐로)","mood":"물어보기 편한 인쇄 전문가","composition":"후킹 커버 → 본문 팁 → CTA","notes":[]},"heldCount":6,"totalCycles":6,"totalPublished":0,"planUpdatedAt":"2026-07-03T12:48:46.195Z","planCards":[{"id":"2026-07-06-business-card-paper","topic":"명함 용지, 뭘 골라야 할까? 인쇄소가 알려주는 3가지 기준","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-06T11:00","headline":"명함 용지, 뭘 골라야 할까? 인쇄소가 알려주는 3가지 기준","dayLabel":"인쇄 지식","cardImage":"cards/2026-07-06-business-card-paper/slide-01.png","captionBody":"명함 용지 고르다가 포기하신 적 있나요? 🪪\n기준은 딱 3가지면 충분합니다.\n\n1️⃣ 두께(평량) — 명함은 250~350g, 고민되면 300g\n2️⃣ 질감 — 차분한 스노우지 vs 쨍한 아트지, 고급스러운 수입지\n3️⃣ 후가공 — 무광/유광 코팅, 박·형압은 포인트 하나에만\n\n종이 이름 다 외울 필요 없어요.\n\"어떤 느낌이었으면 좋겠다\"만 말씀해 주시면\n저희가 딱 맞는 조합으로 추천해 드립니다.\n\n인쇄 맡기기 전에 다시 보게 될 내용이니 저장해 두세요 📌\n견적 문의는 프로필 링크 또는 카카오채널 @동성인쇄소\n\n#명함 #명함디자인 #명함용지 #자영업자 #소상공인 #창업준비","slideImages":["cards/2026-07-06-business-card-paper/slide-01.png","cards/2026-07-06-business-card-paper/slide-02.png","cards/2026-07-06-business-card-paper/slide-03.png","cards/2026-07-06-business-card-paper/slide-04.png","cards/2026-07-06-business-card-paper/slide-05.png"],"status":"planned","pillar":"인쇄 지식"},{"id":"2026-07-09-sticker-cutting","topic":"스티커 주문 전 필수 상식: 도무송 vs 조각 컷팅","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-09T11:00","headline":"스티커 주문 전 필수 상식: 도무송 vs 조각 컷팅","dayLabel":"인쇄 지식","captionBody":"","slideImages":[],"status":"planned","pillar":"인쇄 지식"},{"id":"2026-07-13-quote-guide","topic":"인쇄 견적, 왜 이렇게 나올까? 견적서 읽는 법","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-13T11:00","headline":"인쇄 견적, 왜 이렇게 나올까? 견적서 읽는 법","dayLabel":"견적·이벤트","captionBody":"","slideImages":[],"status":"planned","pillar":"견적·이벤트"},{"id":"2026-07-16-case-cafe-menu","topic":"작업 사례: 카페 메뉴판 리뉴얼 (비포/애프터)","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-16T11:00","headline":"작업 사례: 카페 메뉴판 리뉴얼 (비포/애프터)","dayLabel":"작업 사례","captionBody":"","slideImages":[],"status":"planned","pillar":"작업 사례"},{"id":"2026-07-20-data-checklist","topic":"인쇄 데이터 넘기기 전 체크리스트 5가지","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-20T11:00","headline":"인쇄 데이터 넘기기 전 체크리스트 5가지","dayLabel":"인쇄 지식","captionBody":"","slideImages":[],"status":"planned","pillar":"인쇄 지식"},{"id":"2026-07-23-factory-offset","topic":"공장 이야기: 오프셋 인쇄기가 색을 만드는 방법","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-23T11:00","headline":"공장 이야기: 오프셋 인쇄기가 색을 만드는 방법","dayLabel":"공장 이야기","captionBody":"","slideImages":[],"status":"planned","pillar":"공장 이야기"}],"channels":[{"key":"instagram","label":"인스타그램","icon":"📸","active":true,"published":[],"pending":[{"id":"2026-07-06-business-card-paper","topic":"명함 용지, 뭘 골라야 할까? 인쇄소가 알려주는 3가지 기준","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-06T11:00","headline":"명함 용지, 뭘 골라야 할까? 인쇄소가 알려주는 3가지 기준","dayLabel":"인쇄 지식","cardImage":"cards/2026-07-06-business-card-paper/slide-01.png","captionBody":"명함 용지 고르다가 포기하신 적 있나요? 🪪\n기준은 딱 3가지면 충분합니다.\n\n1️⃣ 두께(평량) — 명함은 250~350g, 고민되면 300g\n2️⃣ 질감 — 차분한 스노우지 vs 쨍한 아트지, 고급스러운 수입지\n3️⃣ 후가공 — 무광/유광 코팅, 박·형압은 포인트 하나에만\n\n종이 이름 다 외울 필요 없어요.\n\"어떤 느낌이었으면 좋겠다\"만 말씀해 주시면\n저희가 딱 맞는 조합으로 추천해 드립니다.\n\n인쇄 맡기기 전에 다시 보게 될 내용이니 저장해 두세요 📌\n견적 문의는 프로필 링크 또는 카카오채널 @동성인쇄소\n\n#명함 #명함디자인 #명함용지 #자영업자 #소상공인 #창업준비","slideImages":["cards/2026-07-06-business-card-paper/slide-01.png","cards/2026-07-06-business-card-paper/slide-02.png","cards/2026-07-06-business-card-paper/slide-03.png","cards/2026-07-06-business-card-paper/slide-04.png","cards/2026-07-06-business-card-paper/slide-05.png"],"status":"planned","pillar":"인쇄 지식"},{"id":"2026-07-09-sticker-cutting","topic":"스티커 주문 전 필수 상식: 도무송 vs 조각 컷팅","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-09T11:00","headline":"스티커 주문 전 필수 상식: 도무송 vs 조각 컷팅","dayLabel":"인쇄 지식","captionBody":"","slideImages":[],"status":"planned","pillar":"인쇄 지식"},{"id":"2026-07-13-quote-guide","topic":"인쇄 견적, 왜 이렇게 나올까? 견적서 읽는 법","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-13T11:00","headline":"인쇄 견적, 왜 이렇게 나올까? 견적서 읽는 법","dayLabel":"견적·이벤트","captionBody":"","slideImages":[],"status":"planned","pillar":"견적·이벤트"},{"id":"2026-07-16-case-cafe-menu","topic":"작업 사례: 카페 메뉴판 리뉴얼 (비포/애프터)","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-16T11:00","headline":"작업 사례: 카페 메뉴판 리뉴얼 (비포/애프터)","dayLabel":"작업 사례","captionBody":"","slideImages":[],"status":"planned","pillar":"작업 사례"},{"id":"2026-07-20-data-checklist","topic":"인쇄 데이터 넘기기 전 체크리스트 5가지","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-20T11:00","headline":"인쇄 데이터 넘기기 전 체크리스트 5가지","dayLabel":"인쇄 지식","captionBody":"","slideImages":[],"status":"planned","pillar":"인쇄 지식"},{"id":"2026-07-23-factory-offset","topic":"공장 이야기: 오프셋 인쇄기가 색을 만드는 방법","format":"카드뉴스","channels":["instagram"],"scheduledFor":"2026-07-23T11:00","headline":"공장 이야기: 오프셋 인쇄기가 색을 만드는 방법","dayLabel":"공장 이야기","captionBody":"","slideImages":[],"status":"planned","pillar":"공장 이야기"}],"stats":{"publishedCount":0,"pendingCount":6,"avgEngagement":0,"trend":"n/a","totalViews":0,"totalLikes":0},"series":[]},{"key":"threads","label":"스레드","icon":"🧵","active":false,"published":[],"pending":[],"stats":{"publishedCount":0,"pendingCount":0,"avgEngagement":0,"trend":"n/a","totalViews":0,"totalLikes":0},"series":[]},{"key":"naver-blog","label":"네이버 블로그","icon":"📝","active":false,"published":[],"pending":[],"stats":{"publishedCount":0,"pendingCount":0,"avgEngagement":0,"trend":"n/a","totalViews":0,"totalLikes":0},"series":[]},{"key":"blogger","label":"구글 블로그","icon":"🅱️","active":false,"published":[],"pending":[],"stats":{"publishedCount":0,"pendingCount":0,"avgEngagement":0,"trend":"n/a","totalViews":0,"totalLikes":0},"series":[]},{"key":"youtube","label":"유튜브","icon":"▶️","active":false,"published":[],"pending":[],"stats":{"publishedCount":0,"pendingCount":0,"avgEngagement":0,"trend":"n/a","totalViews":0,"totalLikes":0},"series":[]},{"key":"linkedin","label":"링크드인","icon":"💼","active":false,"published":[],"pending":[],"stats":{"publishedCount":0,"pendingCount":0,"avgEngagement":0,"trend":"n/a","totalViews":0,"totalLikes":0},"series":[]}],"channelLinks":[{"key":"instagram","label":"인스타그램","icon":"📸","url":"https://www.instagram.com/dongsung_print","sub":"@dongsung_print"}],"blog":{"measured":false,"grade":"측정 전","score":0,"posts":[],"keywords":[{"kw":"명함제작","searchIndex":71214,"competition":"높음"},{"kw":"스티커제작","searchIndex":55207,"competition":"낮음"},{"kw":"리플렛","searchIndex":3157,"competition":"낮음"},{"kw":"소량인쇄","searchIndex":21391,"competition":"낮음"},{"kw":"인쇄견적","searchIndex":88839,"competition":"높음"},{"kw":"후가공","searchIndex":82083,"competition":"높음"}]},"learning":{"sampleSize":0,"generatedAt":"2026-07-03T12:48:46.196Z","hints":[],"variants":[],"hours":[]},"tokenHealth":null,"weeklyReport":null}]};
+const REPO = DATA.repo;
+let ci = 0, ch = 'all';
+const VER = (((DATA.clients[0]||{}).planUpdatedAt)||DATA.generatedAt||'').replace(/\D/g,'').slice(0,14);
+const imgv = s => !s ? s : (s.indexOf('data:')===0 ? s : (s + (s.indexOf('?')<0?'?':'&') + 'v=' + VER));
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ftime = s => !s?'-':String(s).replace('T',' ').slice(0,16);
+const pct = v => (v*100).toFixed(1)+'%';
+const tIcon = t => ({up:'📈',down:'📉','n/a':'·'}[t]||'·');
+function issue(title, body){
+  return 'https://github.com/'+REPO+'/issues/new?labels=feedback&title='+encodeURIComponent(title)+'&body='+encodeURIComponent(body);
 }
-
-function render(data) {
-  const c = data.clients.find((x) => x.slug === 'dongsung-print') || data.clients[0];
-  if (!c) { document.getElementById('app').innerHTML = '<div class="load-error">클라이언트 데이터가 없습니다.</div>'; return; }
-
-  document.getElementById('title').firstChild.textContent = `${c.name} SNS 자동화 대시보드 `;
-  document.getElementById('subtitle').textContent =
-    `${c.instagram || ''} · 기준일 ${c.today} · 데이터 갱신 ${new Date(data.generatedAt).toLocaleString('ko-KR')}`;
-
-  const app = document.getElementById('app');
-  const main = el('main');
-  app.appendChild(main);
-
-  // ── 상태 타일
-  const nextPost = c.schedule.filter((p) => p.status === 'upcoming').sort((a, b) => a.date.localeCompare(b.date))[0];
-  const tiles = el('section');
-  tiles.appendChild(el('h2', {}, '현황'));
-  const grid = el('div', { class: 'tiles' });
-  const tileDefs = [
-    { label: '발행 완료', value: c.counts.published, hint: '누적 게시물' },
-    { label: '발행 예정', value: c.counts.upcoming, hint: '콘텐츠 준비 필요 포함' },
-    { label: '지연', value: c.counts.overdue, hint: c.counts.overdue > 0 ? '⚠ 스케줄 확인 필요' : '정상', alert: c.counts.overdue > 0 },
-    { label: '다음 발행', value: nextPost ? nextPost.date.slice(5).replace('-', '/') : '–', hint: nextPost ? nextPost.title : '스케줄에 포스트를 추가하세요' },
-  ];
-  for (const t of tileDefs) {
-    const tile = el('div', { class: 'tile' + (t.alert ? ' alert' : '') });
-    tile.appendChild(el('div', { class: 'label' }, t.label));
-    tile.appendChild(el('div', { class: 'value' }, String(t.value)));
-    tile.appendChild(el('div', { class: 'hint' }, t.hint));
-    grid.appendChild(tile);
-  }
-  tiles.appendChild(grid);
-  main.appendChild(tiles);
-
-  // ── 발행 일정
-  const sched = el('section');
-  sched.appendChild(el('h2', {}, `발행 일정 <span class="note">clients/${c.slug}/schedule.json 기준</span>`));
-  const schedCard = el('div', { class: 'card' });
-  if (c.schedule.length === 0) {
-    schedCard.appendChild(el('div', { class: 'empty' }, '등록된 스케줄이 없습니다.'));
-  } else {
-    const table = el('table');
-    table.appendChild(el('thead', {}, '<tr><th>날짜</th><th>제목</th><th>필러</th><th>상태</th><th>링크</th></tr>'));
-    const tbody = el('tbody');
-    for (const p of [...c.schedule].sort((a, b) => a.date.localeCompare(b.date))) {
-      const pub = c.published.find((q) => q.id === p.id);
-      tbody.appendChild(el('tr', {}, `
-        <td style="white-space:nowrap">${p.date}</td>
-        <td>${p.title}</td>
-        <td><span class="pillar-tag">${p.pillar || '-'}</span></td>
-        <td><span class="chip ${p.status}">${STATUS_LABEL[p.status]}</span></td>
-        <td>${pub && pub.permalink ? `<a href="${pub.permalink}" target="_blank" rel="noopener">게시물 ↗</a>` : '–'}</td>`));
-    }
-    table.appendChild(tbody);
-    schedCard.appendChild(table);
-  }
-  sched.appendChild(schedCard);
-  main.appendChild(sched);
-
-  // ── 성과
-  const perf = el('section');
-  perf.appendChild(el('h2', {}, `게시물 성과 <span class="note">${c.insights.updatedAt ? '수집 ' + new Date(c.insights.updatedAt).toLocaleString('ko-KR') : ''}</span>`));
-  const perfCard = el('div', { class: 'card' });
-  const ins = (c.insights.posts || []).filter((p) => p.likes != null);
-  if (ins.length === 0) {
-    perfCard.appendChild(el('div', { class: 'empty' },
-      '아직 수집된 성과 데이터가 없습니다. 첫 발행 후 <code>node scripts/insights.js --client ' + c.slug + '</code> 실행 시(자동화됨) 좋아요·댓글·도달·저장 지표가 여기에 표시됩니다.'));
-  } else {
-    const sorted = [...ins].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    perfCard.appendChild(barChart(sorted));
-    perfCard.appendChild(el('div', { class: 'legend' },
-      '<span class="key"><span class="swatch" style="background:var(--series-1)"></span>게시물별 좋아요</span><span class="key">막대에 마우스를 올리면 상세 지표</span>'));
-    const table = el('table');
-    table.setAttribute('style', 'margin-top:16px');
-    table.appendChild(el('thead', {}, '<tr><th>게시물</th><th class="num">좋아요</th><th class="num">댓글</th><th class="num">도달</th><th class="num">저장</th></tr>'));
-    const tbody = el('tbody');
-    for (const p of [...sorted].reverse()) {
-      tbody.appendChild(el('tr', {}, `
-        <td>${p.permalink ? `<a href="${p.permalink}" target="_blank" rel="noopener">${p.title}</a>` : p.title}</td>
-        <td class="num">${fmt(p.likes)}</td><td class="num">${fmt(p.comments)}</td>
-        <td class="num">${fmt(p.reach)}</td><td class="num">${fmt(p.saved)}</td>`));
-    }
-    table.appendChild(tbody);
-    perfCard.appendChild(table);
-  }
-  perf.appendChild(perfCard);
-  main.appendChild(perf);
-
-  // ── 콘텐츠 필러 분포
-  const pillars = {};
-  for (const p of c.schedule) pillars[p.pillar || '기타'] = (pillars[p.pillar || '기타'] || 0) + 1;
-  const pillarNames = Object.keys(pillars);
-  if (pillarNames.length) {
-    const sec = el('section');
-    sec.appendChild(el('h2', {}, '콘텐츠 필러 구성 <span class="note">전체 스케줄 기준</span>'));
-    const card = el('div', { class: 'card' });
-    const total = c.schedule.length;
-    const bar = el('div', { class: 'stackbar' });
-    const legend = el('div', { class: 'legend' });
-    pillarNames.forEach((name, i) => {
-      const seg = el('div', { style: `width:${pillars[name] / total * 100}%;background:${PILLAR_COLORS[i % 4]}` });
-      seg.addEventListener('mousemove', (e) => showTip(e, `<b>${name}</b><br>${pillars[name]}건 (${Math.round(pillars[name] / total * 100)}%)`));
-      seg.addEventListener('mouseleave', hideTip);
-      bar.appendChild(seg);
-      legend.appendChild(el('span', { class: 'key' },
-        `<span class="swatch" style="background:${PILLAR_COLORS[i % 4]}"></span>${name} ${pillars[name]}건`));
-    });
-    card.append(bar, legend);
-    sec.appendChild(card);
-    main.appendChild(sec);
-  }
-
-  // ── 파이프라인
-  const pipe = el('section');
-  pipe.appendChild(el('h2', {}, '자동 발행 파이프라인'));
-  const pipeCard = el('div', { class: 'card' });
-  const flow = el('div', { class: 'pipeline' });
-  ['스케줄 확인', 'HTML→PNG 렌더', 'Cloudinary 업로드', 'Graph API 발행', '이력 기록', '카카오톡 알림', '대시보드 갱신']
-    .forEach((s, i, arr) => {
-      flow.appendChild(el('span', { class: 'step' }, s));
-      if (i < arr.length - 1) flow.appendChild(el('span', { class: 'arrow' }, '→'));
-    });
-  pipeCard.appendChild(flow);
-  pipe.appendChild(pipeCard);
-  main.appendChild(pipe);
+function sparkline(arr){
+  if(!arr||arr.length<2) return '';
+  const w=160,h=34,mx=Math.max(...arr,1),mn=Math.min(...arr,0);
+  const dx=w/(arr.length-1);
+  const pts=arr.map((v,i)=>[i*dx,h-((v-mn)/(mx-mn||1))*(h-6)-3]);
+  const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  return '<svg class="spark" width="'+w+'" height="'+h+'"><path d="'+d+'" fill="none" stroke="#2b6fff" stroke-width="2"/></svg>';
 }
-
-fetch('./data/status.json?' + Date.now())
-  .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(render)
-  .catch((e) => {
-    document.getElementById('subtitle').textContent = '데이터 로드 실패';
-    document.getElementById('app').innerHTML =
-      `<div class="load-error">data/status.json을 불러올 수 없습니다 (${e.message}).<br>` +
-      `로컬에서는 <code>python3 -m http.server</code> 등으로 서빙한 뒤 열어주세요. 데이터 생성: <code>node scripts/build-dashboard.js</code></div>`;
-  });
+function publishedCard(p, badge){
+  const img=p.imageUrl?'<img class="thumb" src="'+esc(imgv(p.imageUrl))+'" loading="lazy" alt=""/>':'<div class="thumb noimg">이미지 없음</div>';
+  const link=p.url?'<a href="'+esc(p.url)+'" target="_blank">열기 ↗</a>':'';
+  return '<div class="card">'+img+'<div class="cbody"><div class="ctop"><strong>'+esc(p.topic)+'</strong>'+badge+'</div>'+
+    '<div class="muted">'+ftime(p.time)+'</div>'+
+    '<div class="cap">'+esc(p.caption||'')+'</div>'+
+    '<div class="met"><span>👁 '+p.views+'</span><span>❤ '+p.likes+'</span><span>💬 '+p.comments+'</span><span>'+pct(p.engagementRate)+'</span></div>'+
+    '<div>'+link+'</div></div></div>';
+}
+function plainHead(it){ return it.headline?it.headline.replace(/<br>/g,' ').replace(/\*/g,''):it.topic; }
+function vBadge(v){ return v?'<span class="badge b-var v-'+esc(v)+'">디자인 '+esc(v)+'</span>':''; }
+function slideCount(it){ return (it.slideImages&&it.slideImages.length)||1; }
+function planCard(client, chLabel, it){
+  const img=it.cardImage?'<img class="thumb" src="'+esc(imgv(it.cardImage))+'" loading="lazy" alt=""/>':'<div class="thumb noimg">카드 준비중</div>';
+  const head=esc(plainHead(it));
+  const n=slideCount(it);
+  const carBadge=n>1?'<span class="badge b-car">📑 '+n+'장</span>':'';
+  const pub=it.status==='published';
+  const manual=it.status==='manual';
+  const stBadge=pub?'<span class="badge b-ok">발행됨</span>':manual?'<span class="badge b-wait">수동발행</span>':'<span class="badge b-plan">예정</span>';
+  const right=pub&&it.publishedUrl?'<a href="'+esc(it.publishedUrl)+'" target="_blank" onclick="event.stopPropagation()">열기 ↗</a>':'<span class="muted">클릭하면 전체보기 →</span>';
+  const m=it.metrics;
+  const metLine=(pub&&m)?'<div class="met" style="margin-top:0"><span>👁 '+(m.views||0)+'</span><span>❤ '+(m.likes||0)+'</span><span>💬 '+(m.comments||0)+'</span><span>'+pct(m.engagementRate||0)+'</span></div>':'';
+  return '<div class="card clk" onclick="openDetail(\''+esc(it.id)+'\')">'+
+    '<div class="thumbwrap">'+img+carBadge+'</div>'+
+    '<div class="cbody"><div class="ctop"><strong>'+head+'</strong>'+stBadge+'</div>'+
+    '<div class="muted">🗓 '+ftime(it.scheduledFor)+(it.dayLabel?' · '+esc(it.dayLabel):'')+'</div>'+
+    (it.captionNote?'<div class="cap">'+esc(it.captionNote)+'</div>':'')+
+    metLine+
+    '<div class="met" style="justify-content:space-between;align-items:center">'+vBadge(it.variant)+right+'</div></div></div>';
+}
+function openDetail(id){
+  const c=DATA.clients[ci];
+  const it=(c.planCards||[]).find(x=>x.id===id); if(!it) return;
+  const t='['+c.name+'] 콘텐츠 수정요청: '+plainHead(it);
+  const b='이 콘텐츠 수정/방향 요청을 남겨주세요.\n\n- 헤드라인: '+plainHead(it)+'\n- 예정: '+ftime(it.scheduledFor)+'\n- 필러: '+(it.dayLabel||'')+'\n\n[수정 요청]\n';
+  const imgs=(it.slideImages&&it.slideImages.length)?it.slideImages:(it.cardImage?[it.cardImage]:[]);
+  const chDef=DATA.channels.find(x=>x.key===((it.channels||[])[0]))||{icon:'📸',label:'인스타그램',key:'instagram'};
+  const isCarousel=imgs.length>1;
+  const capLabel=chDef.key==='naver-blog'?'📝 블로그 본문':chDef.key==='youtube'?'🎬 쇼츠 대본':chDef.key==='threads'?'🧵 스레드 타래':chDef.key==='linkedin'?'💼 링크드인 포스트':'📝 발행 캡션';
+  const slides=imgs.map((s,i)=>'<div class="slide"><img src="'+esc(imgv(s))+'" alt=""/><span class="snum">'+(i+1)+' / '+imgs.length+'</span></div>').join('');
+  const cap=fmtCaption(it.captionBody||it.captionNote||'');
+  const m=it.metrics;
+  const pubBadge=it.status==='published'?'<span class="badge b-ok">발행됨</span>':'<span class="badge b-plan">발행 대기</span>';
+  const perf=(it.status==='published'&&m)?'<div class="capbox" style="margin-bottom:12px;border-color:#2d3a5a"><div class="caphd">📊 성과 데이터</div>'+
+    '<div class="met" style="font-size:13px"><span>👁 '+(m.views||0)+'</span><span>❤ '+(m.likes||0)+'</span><span>💬 '+(m.comments||0)+'</span><span>참여율 '+pct(m.engagementRate||0)+'</span></div>'+
+    (it.insightComment?'<div style="color:#9fe6b0;font-size:14px;margin-top:8px;line-height:1.6">💬 '+esc(it.insightComment)+'</div>':'')+'</div>':'';
+  document.getElementById('mbody').innerHTML=
+    '<div class="kick">'+esc(it.kicker||it.dayLabel||'')+(isCarousel?' · 📑 캐러셀 '+imgs.length+'장':'')+'</div>'+
+    '<h2 style="margin:2px 0 4px">'+esc(plainHead(it))+'</h2>'+
+    '<div class="muted" style="margin-bottom:14px">🗓 '+ftime(it.scheduledFor)+(it.dayLabel?' · '+esc(it.dayLabel):'')+' · '+chDef.icon+' '+esc(chDef.label)+' · '+pubBadge+'</div>'+
+    '<div class="carou">'+slides+'</div>'+
+    (isCarousel?'<div class="muted" style="margin:6px 0 14px">← 좌우로 넘겨 보세요 ('+imgs.length+'장)</div>':'<div style="height:8px"></div>')+
+    perf+
+    '<div class="capbox"><div class="caphd">'+capLabel+'</div><div class="mcap">'+cap+'</div></div>'+
+    '<div style="margin-top:16px;display:flex;gap:8px"><a class="btn fb" href="'+issue(t,b)+'" target="_blank">✏️ 수정요청</a><button class="btn" onclick="closeModal()">닫기</button></div>';
+  document.getElementById('modal').classList.add('on');
+  const car=document.querySelector('.carou'); if(car) car.scrollLeft=0;
+}
+function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+function mdInline(x){ return esc(x).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>'); }
+function fmtCaption(s){
+  return String(s||'').split('\n').map(line=>{
+    const t=line.trim();
+    const img=t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if(img) return '<img class="md-img" src="'+esc(img[2])+'" alt="'+esc(img[1])+'" loading="lazy"/>';
+    if(t.startsWith('## ')) return '<h4 class="md-h">'+mdInline(t.slice(3))+'</h4>';
+    if(t.startsWith('# ')) return '<h3 class="md-h1">'+mdInline(t.slice(2))+'</h3>';
+    if(t==='>'||t.startsWith('> ')) return '<div class="md-quote">'+mdInline(t.replace(/^>\s?/,''))+'</div>';
+    if(t.indexOf('🔖')===0) return '<div class="md-tags">'+esc(t)+'</div>';
+    if(/^\[.+\]$/.test(t)) return '<div class="md-tag">'+esc(t)+'</div>';
+    if(t==='---'||t==='') return '<div class="md-sp"></div>';
+    return '<div>'+mdInline(line)+'</div>';
+  }).join('');
+}
+function channelDetail(client, c){
+  const chLabel=(DATA.channels.find(x=>x.key===c.key)||{}).label||c.key;
+  let h='';
+  const planTitle='['+client.name+'/'+chLabel+'] 기획안 피드백';
+  const planBody='이 채널 기획안에 대한 피드백/수정사항을 적어주세요.\n\n[현재 기획안]\n- 키워드: '+client.keywords.join(', ')+'\n- 브랜드 말투: '+client.brandTone+'\n- 발행시간: '+client.schedule.join(', ')+'\n- 디자인 스타일: '+client.designStyle.mood+' / '+client.designStyle.palette+'\n\n[수정 요청]\n';
+  h+='<div class="panel"><div class="sect-h" style="margin:0 0 8px"><h3>📋 기획안</h3><a class="btn fb" href="'+issue(planTitle,planBody)+'" target="_blank">✏️ 기획안 피드백</a></div>'+
+     '<div>'+client.keywords.map(k=>'<span class="tag">#'+esc(k)+'</span>').join('')+'</div>'+
+     '<div class="muted" style="margin-top:8px">말투: '+esc(client.brandTone)+' · 발행 '+client.schedule.join(', ')+' · 검수 '+esc(client.reviewMode)+' · 디자인 v'+client.designVersion+'</div>'+
+     '<div class="muted">디자인 스타일: '+esc(client.designStyle.mood)+' / '+esc(client.designStyle.palette)+' / '+esc(client.designStyle.composition)+'</div></div>';
+  if(!c.active){
+    h+='<div class="panel"><div class="empty">이 채널은 아직 <b>연결되지 않았습니다</b>. 설정표(targets)에 '+chLabel+'을 추가하고 키를 연결하면 자동 발행이 시작됩니다.</div></div>';
+  }
+  h+='<div class="kpis">'+
+    kpi(c.stats.publishedCount,'발행됨')+
+    kpi(c.stats.pendingCount,'발행 대기')+
+    kpi(pct(c.stats.avgEngagement)+' '+tIcon(c.stats.trend),'평균 참여율',true)+
+    kpi(c.stats.totalViews,'누적 도달')+
+    kpi(c.stats.totalLikes,'누적 좋아요')+'</div>';
+  if(c.series&&c.series.length>1){h+='<div class="panel"><h3>반응도 추세 (참여율 %)</h3>'+sparkline(c.series)+'</div>';}
+  h+=pubDataRows(client.planCards.filter(it=>(it.channels||[]).includes(c.key)));
+  if(c.key==='naver-blog'){ h+=blogSection(client); }
+  h+='<div class="sect-h"><h2>🕓 발행 대기 콘텐츠 ('+c.pending.length+')</h2></div>';
+  h+= c.pending.length? '<div class="cards">'+c.pending.map(it=>planCard(client,chLabel,it)).join('')+'</div>' : '<div class="empty">예정된 콘텐츠가 없습니다. 다음 사이클에 자동 생성됩니다.</div>';
+  h+='<div class="sect-h"><h2>✅ 발행된 콘텐츠 ('+c.published.length+')</h2></div>';
+  h+= c.published.length? '<div class="cards">'+c.published.map(p=>publishedCard(p,'<span class="badge b-ok">발행</span>')).join('')+'</div>' : '<div class="empty">아직 발행된 콘텐츠가 없습니다.</div>';
+  return h;
+}
+function blogSection(client){
+  const b=client.blog;
+  const color = b.score>=70?'#15331f':b.score>=40?'#33290f':'#262b3a';
+  const fg = b.score>=70?'#4ade80':b.score>=40?'#ffb454':'#9aa3b5';
+  let h='<div class="panel"><div class="sect-h" style="margin:0 0 10px"><h3>📊 블로그 지수</h3><span class="muted">내부 추정 · 네이버 연동 시 실측 교체</span></div>';
+  h+='<div class="row"><div class="grade" style="background:'+color+';color:'+fg+'">'+esc(b.grade)+'</div>'+
+     '<div style="flex:1;min-width:160px"><div class="muted">종합 점수 '+b.score+'/100</div><div class="bar"><i style="width:'+b.score+'%"></i></div></div></div>';
+  h+='<table style="margin-top:12px"><tr><th>키워드</th><th>검색지수</th><th>경쟁도</th></tr>'+
+    b.keywords.map(k=>'<tr><td>#'+esc(k.kw)+'</td><td>'+k.searchIndex.toLocaleString()+'</td><td>'+esc(k.competition)+'</td></tr>').join('')+'</table>';
+  h+='</div>';
+  return h;
+}
+function learningPanel(client){
+  const L=client.learning; if(!L) return '';
+  const gs=g=>'<tr><td>'+esc(g.key)+'</td><td>'+g.posts+'</td><td>'+pct(g.avgEngagement)+'</td><td>'+Math.round(g.avgLikes)+'</td></tr>';
+  let h='<div class="panel"><div class="sect-h" style="margin:0 0 10px"><h3>🧠 성과 인사이트 · 자체 학습</h3><span class="muted">표본 '+L.sampleSize+'건 · '+ftime(L.generatedAt)+'</span></div>';
+  if(L.sampleSize<1){
+    h+='<div class="empty">발행물 성과가 쌓이면 어떤 디자인·시간대·소재가 잘 먹히는지 여기서 자동 분석됩니다.</div></div>';
+    return h;
+  }
+  if(L.hints&&L.hints.length){
+    h+='<div style="margin-bottom:10px">'+L.hints.map(x=>'<div class="muted" style="color:#9fe6b0;font-size:13px;margin:3px 0">💡 '+esc(x)+'</div>').join('')+'</div>';
+  }
+  if(L.variants&&L.variants.length){
+    h+='<div class="muted" style="margin:8px 0 4px">콘텐츠 필러별 성과</div>'+
+      '<table><tr><th>필러</th><th>발행</th><th>평균 참여율</th><th>평균 좋아요</th></tr>'+L.variants.map(gs).join('')+'</table>';
+  }
+  if(L.hours&&L.hours.length>1){
+    h+='<div class="muted" style="margin:12px 0 4px">시간대별 성과</div><table><tr><th>발행시각</th><th>발행</th><th>평균 참여율</th><th>평균 좋아요</th></tr>'+L.hours.map(gs).join('')+'</table>';
+  }
+  h+='<div class="muted" style="margin-top:10px">이 학습은 다음 기획 생성 때 디자인 선택·소재 방향에 자동 반영됩니다(자체 디벨롭).</div></div>';
+  return h;
+}
+function weeklyPanel(client){
+  const w=client.weeklyReport; if(!w) return '';
+  const chRows=(w.channels||[]).map(c=>'<tr><td>'+esc(c.label)+'</td><td>'+c.posts+'</td><td>'+pct(c.avgEngagement)+'</td><td>'+c.totalViews+'</td><td>'+c.totalLikes+'</td></tr>').join('');
+  const recs=(w.recommendations||[]).map(r=>'<li>'+esc(r)+'</li>').join('');
+  const top=w.top?'<div class="muted" style="margin:6px 0">🏆 최고 성과: <b>['+esc(w.top.label)+'] '+esc(w.top.title)+'</b> ('+pct(w.top.engagementRate)+')</div>':'';
+  return '<div class="panel" style="border-color:#2d3a5a;background:#121a26">'+
+    '<div class="sect-h" style="margin:0 0 10px"><h3>📅 주간 종합 리포트</h3><span class="muted">'+esc(w.weekOf)+' 주 · 발행 '+w.postsCount+'건 · '+ftime(w.generatedAt)+'</span></div>'+
+    '<div class="mcap" style="font-size:14px;margin-bottom:8px">'+esc(w.summary)+'</div>'+top+
+    (chRows?'<table style="margin:8px 0"><tr><th>채널</th><th>발행</th><th>평균 참여율</th><th>도달</th><th>좋아요</th></tr>'+chRows+'</table>':'')+
+    (recs?'<div class="muted" style="margin:8px 0 4px">다음 주 방향</div><ul style="margin:0;padding-left:18px;color:#9fe6b0;font-size:13px">'+recs+'</ul>':'')+
+    '</div>';
+}
+function pubDataRows(items){
+  const pub=items.filter(it=>it.status==='published'&&it.metrics);
+  if(!pub.length) return '';
+  pub.sort((a,b)=>(b.publishedAt||'').localeCompare(a.publishedAt||''));
+  const rows=pub.map(it=>{const m=it.metrics||{};
+    return '<tr><td><b>'+esc(plainHead(it))+'</b><div class="muted">'+ftime(it.publishedAt)+(it.dayLabel?' · '+esc(it.dayLabel):'')+'</div>'+
+      (it.insightComment?'<div style="color:#9fe6b0;font-size:12px;margin-top:4px">💬 '+esc(it.insightComment)+'</div>':'')+'</td>'+
+      '<td>'+(m.views||0)+'</td><td>'+(m.likes||0)+'</td><td>'+(m.comments||0)+'</td><td>'+pct(m.engagementRate||0)+'</td>'+
+      '<td>'+(it.publishedUrl?'<a href="'+esc(it.publishedUrl)+'" target="_blank">열기↗</a>':'')+'</td></tr>';
+  }).join('');
+  return '<div class="panel"><div class="sect-h" style="margin:0 0 8px"><h3>📊 발행 콘텐츠 데이터</h3><span class="muted">'+pub.length+'건 · 성과+인사이트</span></div>'+
+    '<table><tr><th>콘텐츠 / 인사이트</th><th>도달</th><th>좋아요</th><th>댓글</th><th>참여율</th><th></th></tr>'+rows+'</table></div>';
+}
+function setupPanel(){
+  const s=DATA.setup||{};
+  const settingsUrl='https://github.com/'+REPO+'/settings/secrets/actions';
+  const row=(ok,name,todo,url)=>'<tr><td style="width:34px;font-size:16px">'+(ok?'✅':'⬜')+'</td><td><b>'+esc(name)+'</b>'+(ok?'':'<div class="muted" style="margin-top:2px">'+todo+(url?' · <a href="'+url+'" target="_blank">설정 열기 ↗</a>':'')+'</div>')+'</td></tr>';
+  const done=[s.instagram,s.cloudinary,s.kakao,s.contentReady,s.firstPublish].filter(Boolean).length;
+  return '<div class="panel" style="border-color:#2b6fff">'+
+    '<div class="sect-h" style="margin:0 0 8px"><h3>🚀 오픈 준비 체크리스트</h3><span class="muted">'+done+'/5 완료</span></div>'+
+    '<table>'+
+    row(s.instagram,'인스타그램 연결','발행 토큰 미설정 — META_ACCESS_TOKEN + IG_USER_ID__* 시크릿',settingsUrl)+
+    row(s.cloudinary,'이미지 호스팅(Cloudinary)','CLOUDINARY_URL 시크릿 (Graph API는 공개 이미지 URL 필요)',settingsUrl)+
+    row(s.kakao,'카카오톡 발행 알림','KAKAO_REST_KEY + KAKAO_REFRESH_TOKEN 시크릿',settingsUrl)+
+    row(s.contentReady,'첫 캐러셀 콘텐츠 준비','clients/*/content/에 슬라이드 제작 후 렌더',null)+
+    row(s.firstPublish,'첫 자동발행 완료','토큰 등록 후 run.js --live 또는 Actions cron 대기',null)+
+    '</table>'+
+    '<div class="muted" style="margin-top:8px"><b>인스타그램</b>은 API로 자동발행됩니다. <b>네이버 블로그·유튜브</b> 등 추가 채널은 확장 예정입니다.</div>'+
+    '</div>';
+}
+function chGrad(key){
+  return ({youtube:'linear-gradient(135deg,#3a0d12,#5a1620)',instagram:'linear-gradient(135deg,#3a1140,#5a1a4a)',threads:'linear-gradient(135deg,#0f1c1e,#16282b)','naver-blog':'linear-gradient(135deg,#0e2417,#123a22)',blogger:'linear-gradient(135deg,#3a1e08,#5a2f0d)',linkedin:'linear-gradient(135deg,#0d1b33,#12294d)'})[key]||'linear-gradient(135deg,#161b26,#1c2434)';
+}
+function chBorder(key){ return ({youtube:'#7a2530',instagram:'#7a3a6a',threads:'#2b5a5f','naver-blog':'#2b7a4a',blogger:'#7a4a1f',linkedin:'#2b5aa0'})[key]||'#2b3550'; }
+function channelLinksPanel(client){
+  const links=client.channelLinks||[];
+  if(!links.length) return '';
+  const cards=links.map(l=>
+    '<a href="'+esc(l.url)+'" target="_blank" rel="noopener" style="flex:1 1 200px;min-width:180px;text-decoration:none;border-radius:14px;padding:16px 18px;border:1px solid '+chBorder(l.key)+';background:'+chGrad(l.key)+';display:block">'+
+    '<div style="font-weight:800;font-size:18px;color:#f4f7fb;margin-bottom:4px">'+l.icon+' '+esc(l.label)+'</div>'+
+    '<div style="font-size:13px;color:#cdd6e6;opacity:.85">'+esc(l.sub)+'</div></a>').join('');
+  return '<div class="panel"><div class="sect-h" style="margin:0 0 10px"><h3>🔗 채널 바로가기</h3><span class="muted">클릭하면 각 채널 관리로 이동</span></div>'+
+    '<div style="display:flex;gap:12px;flex-wrap:wrap">'+cards+'</div></div>';
+}
+function overview(client){
+  let h='';
+  h+=setupPanel();
+  h+=channelLinksPanel(client);
+  h+=weeklyPanel(client);
+  h+='<div class="kpis">'+
+    kpi(client.totalCycles,'총 기획')+
+    kpi(client.totalPublished,'총 발행')+
+    kpi(client.heldCount,'발행 대기',client.heldCount>0)+
+    kpi('v'+client.designVersion,'시스템 버전')+'</div>';
+  h+=learningPanel(client);
+  h+='<div class="panel"><h3>채널별 요약</h3><table><tr><th>채널</th><th>상태</th><th>발행</th><th>대기</th><th>평균 참여율</th></tr>'+
+    client.channels.map(c=>{const lab=(DATA.channels.find(x=>x.key===c.key)||{});
+      return '<tr><td>'+lab.icon+' '+lab.label+'</td><td>'+(c.active?'<span class="badge b-ok">연결</span>':'<span class="badge b-hold">미연결</span>')+'</td><td>'+c.stats.publishedCount+'</td><td>'+c.stats.pendingCount+'</td><td>'+pct(c.stats.avgEngagement)+' '+tIcon(c.stats.trend)+'</td></tr>';}).join('')+'</table></div>';
+  const plan=client.planCards||[];
+  const fbTitle='['+client.name+'] 기획안 전체 피드백';
+  const fbBody='이번 달 기획안에 대한 의견/수정사항을 적어주세요.\n\n';
+  h+='<div class="sect-h"><h2>📅 '+DATA.monthLabel+'월 콘텐츠 기획안 ('+plan.length+')</h2><a class="btn fb" href="'+issue(fbTitle,fbBody)+'" target="_blank">✏️ 기획안 피드백</a></div>';
+  if(!plan.length){ h+='<div class="empty">기획안이 아직 없습니다.</div>'; }
+  else {
+    for(const chDef of DATA.channels){
+      const items=plan.filter(p=>(p.channels||[]).includes(chDef.key));
+      if(!items.length) continue;
+      const lab=chDef.icon+' '+chDef.label;
+      h+='<div class="chgrp"><div class="chgrp-h">'+lab+' <span class="muted">'+items.length+'건 · '+esc((items[0].format)||'')+'</span></div>'+
+         '<div class="cards">'+items.map(p=>planCard(client,chDef.label,p)).join('')+'</div></div>';
+    }
+  }
+  h+='<div class="panel" style="margin-top:16px"><h3>벤치마킹 경쟁사</h3><div>'+(client.competitors.length?client.competitors.map(x=>'<span class="tag">@'+esc(x)+'</span>').join(''):'<span class="muted">미설정</span>')+'</div></div>';
+  const recent=[].concat(...client.channels.map(c=>c.published)).sort((a,b)=>(b.time||'').localeCompare(a.time||'')).slice(0,8);
+  h+='<div class="sect-h"><h2>✅ 최근 발행</h2></div>';
+  h+= recent.length?'<div class="cards">'+recent.map(p=>publishedCard(p,'<span class="badge b-ok">발행</span>')).join('')+'</div>':'<div class="empty">아직 발행된 콘텐츠가 없습니다. (검수 우선 — 승인 후 발행)</div>';
+  return h;
+}
+function kpi(v,l,accent){return '<div class="kpi"><div class="v'+(accent?' accent':'')+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+function renderClients(){
+  document.getElementById('clients').innerHTML = DATA.clients.length>1 ? DATA.clients.map((c,i)=>'<button class="cbtn'+(i===ci?' on':'')+'" onclick="setClient('+i+')">'+esc(c.name)+'</button>').join('') : '';
+}
+function renderTabs(){
+  const c=DATA.clients[ci];
+  const tabs=[{key:'all',label:'전체',icon:'🏠',active:true}].concat(DATA.channels.map(ch=>{const cc=c.channels.find(x=>x.key===ch.key);return {key:ch.key,label:ch.label,icon:ch.icon,active:cc&&cc.active};}));
+  document.getElementById('tabs').innerHTML = tabs.map(t=>'<button class="tab'+(t.key===ch?' on':'')+'" onclick="setCh(\''+t.key+'\')">'+t.icon+' '+t.label+(t.key!=='all'?'<span class="dot '+(t.active?'live':'off')+'"></span>':'')+'</button>').join('');
+}
+function renderView(){
+  const c=DATA.clients[ci];
+  document.getElementById('view').innerHTML = ch==='all'?overview(c):channelDetail(c,c.channels.find(x=>x.key===ch));
+  document.getElementById('gen').textContent = ftime(DATA.generatedAt)+' (UTC)';
+}
+function setClient(i){ci=i;ch='all';renderClients();renderTabs();renderView();window.scrollTo(0,0);}
+function setCh(k){ch=k;renderTabs();renderView();window.scrollTo(0,0);}
+try {
+  renderClients(); renderTabs(); renderView();
+} catch (e) {
+  var v = document.getElementById('view');
+  if (v) v.innerHTML = '<div style="padding:24px;line-height:1.7;color:#ffb4b4">표시 중 오류: '
+    + ((e && e.message) || e)
+    + '<br><br><button onclick="location.reload(true)" style="padding:10px 16px;border-radius:8px;border:0;background:#2b6fff;color:#fff;font-size:15px">새로고침</button></div>';
+}
 </script>
 </body>
 </html>

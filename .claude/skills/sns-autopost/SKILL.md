@@ -19,8 +19,14 @@ clients/<client>/
   content/<post-id>/  # 포스트별 슬라이드 HTML + caption.txt
 data/<client>/published.json  # 발행 이력 (자동 관리 — 직접 수정 금지)
 scripts/run.js    # 통합 파이프라인
-dashboard/        # 운영 대시보드 (Actions가 자동 갱신)
+dashboard/        # 콘텐츠 관제실 (Actions가 자동 갱신 → GitHub Pages)
 ```
+
+**대시보드가 곧 제품이다** — sns채널-자동화 스킬(pslab)의 관제실 구조를 따른다:
+채널 탭(전체/채널별) · 오픈 준비 체크리스트 · 채널 바로가기(그라데이션 카드) · 주간 종합 리포트 ·
+KPI · 성과 인사이트·자체 학습 · 채널별 요약 · 월 콘텐츠 기획안(카드 그리드 → 클릭 시 캐러셀 전체보기 +
+발행 캡션 + GitHub 이슈 수정요청) · 5분 자동 새로고침 · window.onerror 빈화면 가드.
+생성기: `scripts/build-dashboard.js` (자가완결형 HTML 1장, `--inline`이면 이미지까지 임베드).
 
 ## 핵심 명령
 
