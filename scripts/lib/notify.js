@@ -5,7 +5,7 @@ import { ROOT, fetchJson, log } from './common.js';
 const TOKEN_CACHE = path.join(ROOT, 'data', '.kakao-token.json');
 
 // refresh_token으로 access_token 발급 (회전된 refresh_token은 캐시에 보관)
-async function accessToken() {
+export async function accessToken() {
   const restKey = process.env.KAKAO_REST_KEY;
   let refresh = process.env.KAKAO_REFRESH_TOKEN;
   if (!restKey || !refresh) return null; // 알림 미설정 — 조용히 스킵

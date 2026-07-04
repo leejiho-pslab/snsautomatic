@@ -8,6 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "doctor": "node scripts/doctor.js",
     "test:dongsung": "node scripts/run.js --client dongsung-print --test",
     "live:dongsung": "node scripts/run.js --client dongsung-print --live",
     "dashboard": "node scripts/build-dashboard.js"

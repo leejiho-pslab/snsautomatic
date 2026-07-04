@@ -43,6 +43,12 @@ node scripts/run.js --client <client> --live --post-id 2026-07-10-print-tips
 
 # 성과 수집 (대시보드 데이터 갱신)
 node scripts/insights.js --client <client>
+
+# 설정 진단 (읽기 전용 — 토큰·콘텐츠·일정 점검, 문제 발생 시 가장 먼저 실행)
+node scripts/doctor.js
+
+# 카카오 refresh token 발급/재발급 도우미
+node scripts/kakao-auth.js [--code <인가코드>]
 ```
 
 결과는 stdout 마지막 줄의 JSON 한 줄로 요약된다 (`{"ok":true,"published":[...],"skipped":[...]}`). 이 JSON만 읽고 사용자에게 보고하면 된다.

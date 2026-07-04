@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --brand-primary: #12284B;
+    --brand-bg: #F7F5F0;
+    --brand-text: #1A1A1E;
+    --brand-cyan: #00A6D6;
+    --brand-magenta: #E5197C;
+    --brand-yellow: #F5C518;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1350px; overflow: hidden;
+    font-family: 'Pretendard', -apple-system, 'Noto Sans KR', sans-serif;
+    background: var(--brand-bg); color: var(--brand-text);
+    display: flex; flex-direction: column;
+  }
+  .head { display: flex; justify-content: space-between; align-items: center; padding: 72px 80px 0; }
+  .logo { font-size: 26px; font-weight: 800; color: var(--brand-primary); }
+  .logo .dot { color: var(--brand-magenta); }
+  .page { font-size: 24px; font-weight: 600; color: #9A968C; }
+  .main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 80px; }
+  .num { width: 88px; height: 88px; border-radius: 24px; background: var(--brand-primary); color: var(--brand-yellow); font-size: 44px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 40px; }
+  h2 { font-size: 60px; font-weight: 800; line-height: 1.28; letter-spacing: -0.02em; color: var(--brand-primary); word-break: keep-all; margin-bottom: 36px; }
+  .body { font-size: 33px; line-height: 1.62; font-weight: 400; color: #3A3A40; word-break: keep-all; }
+  .body strong { font-weight: 700; color: var(--brand-text); box-shadow: inset 0 -0.45em 0 rgba(245,197,24,.45); }
+  .tip { margin-top: 44px; background: #fff; border-left: 10px solid var(--brand-cyan); border-radius: 0 20px 20px 0; padding: 30px 36px; font-size: 29px; line-height: 1.55; color: #3A3A40; word-break: keep-all; }
+  .tip b { color: var(--brand-primary); }
+  .foot { padding: 0 80px 96px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .handle { font-size: 24px; font-weight: 600; color: #9A968C; }
+  .cmyk { display: flex; }
+  .cmyk span { width: 56px; height: 20px; display: block; }
+  .cmyk .c { background: var(--brand-cyan); } .cmyk .m { background: var(--brand-magenta); }
+  .cmyk .y { background: var(--brand-yellow); } .cmyk .k { background: #000; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="logo">동성인쇄소<span class="dot">.</span></div>
+    <div class="page">03 / 05</div>
+  </div>
+  <div class="main">
+    <div class="num">A</div>
+    <h2>After:<br>300g 스노우지 + 무광 코팅</h2>
+    <div class="body"><strong>300g 스노우지에 양면 무광 코팅</strong>, 접는 선에는 오시 처리. 물은 닦아내면 되고, 접히는 부분도 갈라지지 않아요. 손에 잡히는 무게감부터 달라집니다.</div>
+    <div class="tip"><b>인쇄소 팁</b> · 메뉴 가격이 자주 바뀌는 집은 가격 부분만 교체형으로 나눠 만드는 방법도 있어요.</div>
+  </div>
+  <div class="foot">
+    <div class="handle">@dongsung_print</div>
+    <div class="cmyk"><span class="c"></span><span class="m"></span><span class="y"></span><span class="k"></span></div>
+  </div>
+</body>
+</html>
