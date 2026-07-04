@@ -64,6 +64,7 @@ node scripts/kakao-auth.js [--code <인가코드>]
 ### B. 콘텐츠(캐러셀) 제작
 1. `clients/<client>/brand.md` 읽기 (이때만)
 2. 필요 시 `references/carousel-design.md` 읽기
+   - **새 템플릿 제작·리디자인이면 `references/design-pipeline.md` 필독** (canvas-design/frontend-design/dataviz 스킬 연계 + Figma·Canva MCP 활용 절차)
 3. `templates/`의 템플릿을 복사해 `content/<post-id>/slide-01.html … slide-NN.html` 작성 (1080×1350)
 4. `caption.txt` 작성 (본문 + 해시태그. config의 기본 해시태그는 자동 병합)
 5. `schedule.json`에 항목 추가
