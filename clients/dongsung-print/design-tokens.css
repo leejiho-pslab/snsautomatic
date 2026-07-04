@@ -1,0 +1,36 @@
+:root {
+  --brand-primary: #12284B;
+  --brand-bg: #F7F5F0;
+  --brand-text: #1A1A1E;
+  --brand-cyan: #00A6D6;
+  --brand-magenta: #E5197C;
+  --brand-yellow: #F5C518;
+  --brand-black: #000000;
+  --font-family-base: 'Pretendard', -apple-system, 'Noto Sans KR', sans-serif;
+  --type-display-size: 88px;
+  --type-display-weight: 800;
+  --type-display-leading: 1.22;
+  --type-display-tracking: -0.03em;
+  --type-h2-size: 60px;
+  --type-h2-weight: 800;
+  --type-h2-leading: 1.28;
+  --type-h2-tracking: -0.02em;
+  --type-kicker-size: 34px;
+  --type-kicker-weight: 600;
+  --type-kicker-leading: 1.4;
+  --type-kicker-tracking: 0em;
+  --type-body-size: 33px;
+  --type-body-weight: 400;
+  --type-body-leading: 1.62;
+  --type-body-tracking: 0em;
+  --type-caption-size: 24px;
+  --type-caption-weight: 600;
+  --type-caption-leading: 1.4;
+  --type-caption-tracking: 0.02em;
+  --space-outer: 80px;
+  --space-gap: 32px;
+  --space-footerBottom: 96px;
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-pill: 999px;
+}

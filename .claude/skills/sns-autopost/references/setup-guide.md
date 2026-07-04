@@ -66,9 +66,10 @@ Graph API는 공개 이미지 URL을 요구하므로 렌더된 PNG를 호스팅�
 cp -r clients/_template clients/<client-slug>
 ```
 1. `config.json` 수정: `name`, `igEnvKey`, `timezone`, `defaultHashtags`, `notify`
-2. `brand.md` 작성: 브랜드 색상, 톤앤매너, 타깃, 콘텐츠 필러, 금칙어
-3. `templates/` 커스터마이즈 (브랜드 색·로고 반영)
-4. `schedule.json` 초기화: `{"posts": []}`
+2. `brand.md` 작성: 브랜드 색상, 톤앤매너, 타깃, 콘텐츠 필러, 금칙어 (사람이 읽는 서술형 가이드)
+3. `design-tokens.json` 수정: 색·타이포 스케일을 brand.md와 일치시켜 기입 → `node scripts/build-tokens.js --client <slug>` 실행해 `design-tokens.css` 생성 (템플릿·슬라이드가 실제로 참조하는 기계가 읽는 단일 소스 — 자세한 원칙은 `references/design-pipeline.md`)
+4. `templates/`의 3개 템플릿에서 로고 텍스트·CTA 연락처만 브랜드에 맞게 수정 (색은 손대지 않음 — design-tokens.json이 자동 반영)
+5. `schedule.json` 초기화: `{"posts": []}`
 
 ## 6. 검증
 

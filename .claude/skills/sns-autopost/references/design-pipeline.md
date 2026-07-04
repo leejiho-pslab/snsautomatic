@@ -29,24 +29,46 @@ frontend-design 방식의 2-패스:
 - **모션/장식은 1곳에만**: 시그니처 요소 하나가 기억되게, 나머지는 조용히.
 - **실물 검증**: 렌더 PNG를 반드시 눈으로 확인(스크린샷 리뷰). 잘림·오버플로·자간 뭉침은 코드로 안 보인다.
 
-## 3. 사용 가능한 MCP (연결 상태별)
+## 3. 사용 가능한 MCP — 각자의 역할을 엄격히 구분할 것
 
 | MCP | 상태 | 용도 |
 |---|---|---|
 | **Figma** | ✅ 연결됨 | 레퍼런스 디자인 해체(`get_design_context`·`get_screenshot`), 디자인 시스템 규칙 추출(`create_design_system_rules`), 시안을 Figma로 역푸시(`generate_figma_design`) — 클라이언트 검수용 |
-| **Higgsfield** | ✅ 연결됨 | 배경 실사/모션 클립 생성(pslab 방식: 세션에서 생성→URL 저장→CI 다운로드). 단 **한글 텍스트는 절대 AI 이미지로 만들지 말 것** — HTML 렌더 유지 |
-| **Canva** | ✅ 연결됨 | `generate-design`(1080×1350 instagram_post로 시안 후보 4종 생성) → 후보 선택 → `create-design-from-candidate` → `export-design`(PNG). 브랜드킷은 Canva Pro 필요 — 없으면 쿼리에 브랜드 토큰(색 hex·타이포·시그니처)을 직접 서술할 것 |
-| **Adobe for creativity** | ✅ 연결됨 | Express 템플릿 검색(`search_design`), 폰트 추천(`font_recommend`), 이미지 보정·배경제거·생성형 확장(Firefly), 스톡 검색 |
+| **Higgsfield** | ✅ 연결됨 | 배경 실사/모션 클립 생성(pslab 방식: 세션에서 생성→URL 저장→CI 다운로드) |
+| **Canva** | ✅ 연결됨 | 무드보드·배경 소재·레이아웃 아이디어 탐색용 (§3.1 참고) |
+| **Adobe for creativity** | ✅ 연결됨 | Express 템플릿 검색·스톡 사진·이미지 보정(배경제거·생성형 확장)·폰트 추천 — 소재 소싱용 |
 | Magic Patterns / Gamma | 미설치 | UI 시안 반복 / 소셜·프레젠테이션 생성 (선택) |
+
+### 3.1 중요: Canva/Adobe AI 생성은 "최종 한글 텍스트 레이어"에 쓰지 않는다
+
+pslab 원본 스킬의 철칙("한글은 HTML→Chromium 렌더. AI 확산 이미지에 한글 넣으면 깨진다")은 디퓨전 이미지 모델만의 문제가 아니라 **Canva `generate-design`의 AI 레이아웃 엔진에도 동일하게 적용된다** — 실제로 동성인쇄소 시안 생성 결과, 한글 타이포의 자간·줄바꿈·굵기 위계가 정교하지 않아 "촌스럽다"는 피드백을 받았다(2026-07 검증 완료). 이는 도구 결함이 아니라 **AI 디자인 생성기 전반이 한글 타이포그래피 정밀도에서 아직 약하다**는 구조적 한계다.
+
+그래서 역할을 이렇게 나눈다:
+
+- **최종 슬라이드의 한글 텍스트·레이아웃·간격 = 항상 HTML/CSS + design-tokens.css** (아래 §5). 이 파이프라인이 이미 pslab 콘택트시트 검증 기준으로 Canva AI 결과보다 일관되고 정교하다 — 이미 만든 것을 더 신뢰할 것.
+- **Canva/Adobe = 소재·무드보드 전용**: 배경 사진/텍스처/일러스트 탐색(`Canva generate-design`을 `card`/`poster` 등으로 목업만 훑어보거나, Adobe `asset_search`로 스톡 사진 검색), 색·구도 영감 수집, (Canva Pro 브랜드킷이 있으면) 로고·브랜드 에셋 관리. **생성된 이미지에 한글 텍스트가 박혀 나오면 그 텍스트는 쓰지 않고 배경/여백 요소로만 잘라 쓴다.**
+- Figma는 예외 — 레퍼런스 **해체**(읽기)에는 계속 최우선으로 쓴다. 벡터 좌표·색상·타이포를 수치로 뽑아내는 용도라 생성형 한글 문제가 없다.
 
 ## 4. 레퍼런스 흡수 워크플로 (탁월한 디자인 따라가기)
 
-1. 벤치마킹할 게시물/화면 캡처를 받는다 (또는 Figma 커뮤니티 파일 URL).
-2. Figma MCP `get_screenshot`/`get_design_context`로 구조·간격·타이포를 수치로 해체한다.
-3. 해체한 규칙을 `clients/<client>/brand.md`의 토큰으로 번역한다 (색은 dataviz 검증 스크립트 통과 필수).
-4. 템플릿 1장만 시안 A/B로 만들어 렌더 → 스크린샷 비교 → 승인 후 전체 템플릿에 전개.
-5. 결과가 좋으면 그 규칙을 이 문서 하단 "검증된 패턴"에 추가한다 (자체 학습).
+레퍼런스(따라가고 싶은 실제 사례)를 받으면:
+
+1. 스크린샷을 채팅으로 직접 받거나, Figma/Pinterest/Instagram 링크를 받는다. 레퍼런스가 여러 개면 `data/<client>/references/`에 원본을 모아둔다 (신설 시 생성).
+2. Figma 링크가 있으면 `get_screenshot`/`get_design_context`로, 스크린샷만 있으면 육안 계측으로 **구조를 수치화**한다: 외곽 여백 px, 타이포 크기 3단계, 색 hex, 요소 간 간격, 정보 위계(무엇이 크고 무엇이 작은가).
+3. 수치화한 값을 `clients/<client>/design-tokens.json`에 반영 (색은 dataviz 검증 스크립트로 CVD 안전성 확인) → `node scripts/build-tokens.js --client <client>` 실행.
+4. 템플릿 1장만 먼저 고쳐 `node scripts/contact-sheet.js --client <client> --post <post-id>`로 전체 흐름 검수 → 레퍼런스와 나란히 비교.
+5. 승인되면 나머지 템플릿에 동일 토큰으로 전개, 재렌더.
+6. 결과가 좋으면 그 규칙을 이 문서 하단 "검증된 패턴"에 추가한다 (자체 학습 — 다음 클라이언트 온보딩 때 출발점이 된다).
+
+## 5. 디자인 토큰 — 단일 소스 원칙 (구조의 핵심)
+
+`clients/<client>/design-tokens.json`이 **유일한 진실**이다. 템플릿·슬라이드는 그 어디에도 색·타이포 값을 직접 적지 않고, 생성된 `design-tokens.css`를 `<link>`로만 참조한다 (자세한 사용법은 `carousel-design.md` §템플릿 활용). `run.js`가 발행할 때마다 `build-tokens.js`를 자동 호출하므로 값이 어긋날 일이 없다.
+
+- **바꾸는 법**: `design-tokens.json` 수정 → `node scripts/build-tokens.js --client <client>` → `node scripts/contact-sheet.js`로 검수. 이게 전부다. 슬라이드 30장을 뒤질 필요 없음.
+- **왜 중요한가**: 처음엔 템플릿 3개 + 슬라이드 30개, 총 33개 파일에 같은 색상표가 그대로 복사돼 있었다 — 색 하나 바꾸려면 33곳을 손으로 고쳐야 했다. 지금은 1곳.
+- **확장 여지**: 현재 색(`--brand-*`) 외에 타이포 스케일(`--type-*`)·간격(`--space-*`)·라운드(`--radius-*`) 토큰도 이미 생성돼 있다. 템플릿이 아직 색만 쓰고 있을 뿐 — 레퍼런스가 오면 이 토큰들로 타이포/간격까지 정밀 이식할 수 있다.
 
 ## 검증된 패턴 (누적)
 
 - 동성인쇄소: 잉크 네이비(#12284B) + 모조지 아이보리(#F7F5F0) + CMYK 컬러바 시그니처, Pretendard, 후킹→본문(넘버 배지+형광펜 강조+팁 박스)→CTA 구조. 1080×1350 외곽 여백 80px.
+- Canva AI `generate-design`은 한글 카드뉴스의 **최종 산출물로는 부적합** — 무드보드·소재 탐색에만 사용 (2026-07 검증).

@@ -49,6 +49,12 @@ node scripts/doctor.js
 
 # 카카오 refresh token 발급/재발급 도우미
 node scripts/kakao-auth.js [--code <인가코드>]
+
+# 디자인 토큰(design-tokens.json) → CSS 재생성 (run.js가 발행 시 자동 호출하므로 평소엔 불필요)
+node scripts/build-tokens.js [--client <client>]
+
+# 콘택트시트: 한 포스트의 슬라이드 전체를 한 장으로 모아 빠르게 검수
+node scripts/contact-sheet.js --client <client> --post <post-id>
 ```
 
 결과는 stdout 마지막 줄의 JSON 한 줄로 요약된다 (`{"ok":true,"published":[...],"skipped":[...]}`). 이 JSON만 읽고 사용자에게 보고하면 된다.

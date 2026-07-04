@@ -23,18 +23,29 @@
 - 해시태그: 포스트 고유 태그만 작성 — config.json의 `defaultHashtags`가 발행 시 자동 병합됨
 - 총 2,200자·해시태그 30개 제한 (스크립트가 초과 시 에러)
 
-## 템플릿 활용
+## 템플릿 활용 — 디자인 토큰은 단일 소스 (중요)
 
-`clients/<client>/templates/`의 템플릿은 CSS 변수로 브랜드 토큰을 노출한다:
+브랜드 색·타이포 스케일은 `clients/<client>/design-tokens.json`에만 정의한다. 템플릿·슬라이드 HTML은
+**절대 `:root{...}` 로 색을 직접 선언하지 말고**, 생성된 CSS를 `<link>`로만 참조한다:
 
-```css
-:root {
-  --brand-primary: …; --brand-secondary: …;
-  --brand-bg: …; --brand-text: …; --brand-accent: …;
-}
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="../design-tokens.css">   <!-- templates/ 기준. content/<post>/ 에서는 ../../design-tokens.css -->
 ```
 
+사용 가능한 변수(자동 생성, `node scripts/build-tokens.js`):
+`--brand-*`(색), `--font-family-base`, `--type-<display|h2|kicker|body|caption>-<size|weight|leading|tracking>`, `--space-*`, `--radius-*`.
+
+**색을 하나라도 바꿔야 하면 `design-tokens.json`만 고치고 `node scripts/build-tokens.js` 실행 — 슬라이드 파일을 손으로 뒤지지 않는다.** (`run.js`가 발행 때마다 자동 재생성하므로 평소엔 신경 쓸 필요 없음.)
+
 새 슬라이드는 템플릿 복사 → 텍스트만 교체가 원칙. 레이아웃 변형이 필요하면 기존 템플릿의 그리드·여백 체계(외곽 여백 80px, 제목/본문 간격 32px)를 유지할 것.
+
+## 빠른 검수: 콘택트시트
+
+```bash
+node scripts/contact-sheet.js --client <client> --post <post-id>
+```
+슬라이드 전체를 한 장에 이어붙인 이미지를 생성한다(`data/<client>/previews/<post-id>-contact-sheet.png`). 레퍼런스 디자인과 나란히 비교하거나, 수정 후 전체 흐름을 한눈에 볼 때 매번 이걸로 확인할 것 — 슬라이드 1장씩 따로 보면 놓치는 리듬 문제(간격 불균일, 톤 튐)가 콘택트시트에서는 바로 보인다.
 
 ## 품질 체크리스트 (발행 전)
 

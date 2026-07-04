@@ -1,0 +1,23 @@
+{
+  "$schema": "sns-autopost design tokens v1",
+  "client": "_template",
+  "meta": { "brandName": "브랜드명", "signature": "이 브랜드만의 시그니처 요소 한 줄" },
+  "color": {
+    "primary": "#333333",
+    "bg": "#FFFFFF",
+    "text": "#111111",
+    "accent": "#0055FF"
+  },
+  "type": {
+    "fontFamily": "'Pretendard', -apple-system, 'Noto Sans KR', sans-serif",
+    "scale": {
+      "display": { "size": 88, "weight": 800, "lineHeight": 1.22, "tracking": -0.03 },
+      "h2": { "size": 60, "weight": 800, "lineHeight": 1.28, "tracking": -0.02 },
+      "kicker": { "size": 34, "weight": 600, "lineHeight": 1.4, "tracking": 0 },
+      "body": { "size": 33, "weight": 400, "lineHeight": 1.62, "tracking": 0 },
+      "caption": { "size": 24, "weight": 600, "lineHeight": 1.4, "tracking": 0.02 }
+    }
+  },
+  "space": { "outer": 80, "gap": 32, "footerBottom": 96 },
+  "radius": { "sm": 12, "md": 20, "pill": 999 }
+}

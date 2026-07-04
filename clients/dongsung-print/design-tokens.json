@@ -1,0 +1,26 @@
+{
+  "$schema": "sns-autopost design tokens v1",
+  "client": "dongsung-print",
+  "meta": { "brandName": "동성인쇄소", "signature": "인쇄 교정지 CMYK 컬러바" },
+  "color": {
+    "primary": "#12284B",
+    "bg": "#F7F5F0",
+    "text": "#1A1A1E",
+    "cyan": "#00A6D6",
+    "magenta": "#E5197C",
+    "yellow": "#F5C518",
+    "black": "#000000"
+  },
+  "type": {
+    "fontFamily": "'Pretendard', -apple-system, 'Noto Sans KR', sans-serif",
+    "scale": {
+      "display": { "size": 88, "weight": 800, "lineHeight": 1.22, "tracking": -0.03 },
+      "h2": { "size": 60, "weight": 800, "lineHeight": 1.28, "tracking": -0.02 },
+      "kicker": { "size": 34, "weight": 600, "lineHeight": 1.4, "tracking": 0 },
+      "body": { "size": 33, "weight": 400, "lineHeight": 1.62, "tracking": 0 },
+      "caption": { "size": 24, "weight": 600, "lineHeight": 1.4, "tracking": 0.02 }
+    }
+  },
+  "space": { "outer": 80, "gap": 32, "footerBottom": 96 },
+  "radius": { "sm": 12, "md": 20, "pill": 999 }
+}

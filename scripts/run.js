@@ -13,6 +13,7 @@ import { uploadPost } from './lib/upload.js';
 import { publishCarousel } from './lib/publish.js';
 import { notifyKakao } from './lib/notify.js';
 import { buildDashboard } from './build-dashboard.js';
+import { buildTokens } from './build-tokens.js';
 
 function parseArgs(argv) {
   const args = { force: false, allClients: false, mode: null };
@@ -58,6 +59,7 @@ function duePosts(client, args, config) {
 }
 
 async function processClient(client, args, result) {
+  buildTokens(client); // design-tokens.json → .css를 항상 최신으로 유지 (단일 소스 원칙)
   const config = loadConfig(client);
   const posts = duePosts(client, args, config);
   if (posts.length === 0) {
