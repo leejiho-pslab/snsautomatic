@@ -35,8 +35,8 @@ frontend-design 방식의 2-패스:
 |---|---|---|
 | **Figma** | ✅ 연결됨 | 레퍼런스 디자인 해체(`get_design_context`·`get_screenshot`), 디자인 시스템 규칙 추출(`create_design_system_rules`), 시안을 Figma로 역푸시(`generate_figma_design`) — 클라이언트 검수용 |
 | **Higgsfield** | ✅ 연결됨 | 배경 실사/모션 클립 생성(pslab 방식: 세션에서 생성→URL 저장→CI 다운로드). 단 **한글 텍스트는 절대 AI 이미지로 만들지 말 것** — HTML 렌더 유지 |
-| **Canva** | ⚠️ 인증 필요 | 템플릿 라이브러리·브랜드킷·오토필. claude.ai 커넥터 설정에서 로그인하면 사용 가능 |
-| Adobe for creativity | 미설치 | Express 템플릿·Firefly·브랜드킷 (claude.ai 커넥터 디렉토리에서 연결) |
+| **Canva** | ✅ 연결됨 | `generate-design`(1080×1350 instagram_post로 시안 후보 4종 생성) → 후보 선택 → `create-design-from-candidate` → `export-design`(PNG). 브랜드킷은 Canva Pro 필요 — 없으면 쿼리에 브랜드 토큰(색 hex·타이포·시그니처)을 직접 서술할 것 |
+| **Adobe for creativity** | ✅ 연결됨 | Express 템플릿 검색(`search_design`), 폰트 추천(`font_recommend`), 이미지 보정·배경제거·생성형 확장(Firefly), 스톡 검색 |
 | Magic Patterns / Gamma | 미설치 | UI 시안 반복 / 소셜·프레젠테이션 생성 (선택) |
 
 ## 4. 레퍼런스 흡수 워크플로 (탁월한 디자인 따라가기)
